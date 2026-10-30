@@ -2,11 +2,11 @@
 
 *¿para qué tomarte el trabajo?*
 
-![Why Bother?](img/reflexion.jpg)
+![Why Bother?](img/epilogo-espiral.jpg)
 
 **[Ver la obra](https://armandomr99.github.io/Unidad-8/)** · **[Bitácora](BITACORA.md)**
 
-Una reflexión en tinta roja sobre crear y aprender en tiempos de inteligencia artificial. Seis capítulos en estilo shodō: el camino, la copia, lo cómodo, el esfuerzo, el silencio, florecer. Lo fácil atrae; traerlos de vuelta cuesta. Y lo que vuelve ya no es lo mismo.
+Una película corta, hecha de simulación, sobre crear y aprender en tiempos de inteligencia artificial. Seis capítulos y un epílogo. Dos lados, los mismos agentes, distintas reglas. Lo fácil atrae; traerlos de vuelta cuesta. Y los que vuelven ya no son los mismos.
 
 Se recorre haciendo clic. Mejor con sonido.
 

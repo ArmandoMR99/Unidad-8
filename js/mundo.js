@@ -1,5 +1,5 @@
 // EL MUNDO
-// Contiene a los agentes, sus copias del lado que copia, los símbolos 3D
+// Contiene a los agentes, sus copias del lado IA, las piezas únicas
 // y todo lo que se dibuja. Las escenas (escenas.js) solo cambian
 // "perillas" de este mundo; las reglas viven aquí.
 //
@@ -8,8 +8,8 @@
 // La frontera entre los dos lados está en x = 0.
 
 import * as THREE from 'three';
-import { bandada, deambular, paredes, integrar, moverManhattan } from './comportamientos.js';
-import { Simbolos } from './modelos.js';
+import { bandada, deambular, fluir, paredes, integrar, moverManhattan } from './comportamientos.js';
+import { crearPieza, liberarPieza } from './piezas.js';
 import { ruido } from './ruido.js';
 
 export const HUMANO = 'humano';
@@ -102,10 +102,10 @@ export class Mundo {
     // Colores: cada agente tiene el suyo y lo conserva siempre.
     this.agentes = [];
     for (let i = 0; i < N; i++) {
-      // Paleta de shodō: rojos de tinta (bermellón a carmesí) y algo de color hueso.
-      const c = Math.random() < 0.86
-        ? new THREE.Color().setHSL((0.975 + Math.random() * 0.05) % 1, 0.75 + Math.random() * 0.2, 0.42 + Math.random() * 0.16)
-        : new THREE.Color().setHSL(0.08, 0.3, 0.86 + Math.random() * 0.06);
+      // Paleta cálida: sobre todo ámbar, rosa y oro, con unos pocos turquesa.
+      const r = Math.random();
+      const tono = r < 0.78 ? (0.94 + Math.random() * 0.2) % 1 : 0.45 + Math.random() * 0.12;
+      const c = new THREE.Color().setHSL(tono, 0.7 + Math.random() * 0.25, 0.6 + Math.random() * 0.1);
       this.agentes.push(new Agente(i, c));
     }
     // Orden por tono: se usa para el jardín y la órbita (degradado de color).
@@ -116,9 +116,9 @@ export class Mundo {
 
     this.copias = new Array(N).fill(null);
     this.casillas = new Map();
-    this.encogiendo = [];
+    this.piezasMuriendo = [];
     this.puntero = { x: 0, y: 0, abajo: false, dentro: false };
-    // Avisos para el sonido: cuando nace un símbolo y cuando un rígido llega a su casilla.
+    // Avisos para el sonido: cuando nace una pieza y cuando un rígido llega a su casilla.
     this.alNacer = null;
     this.alLlegar = null;
 
@@ -173,8 +173,19 @@ export class Mundo {
     this.lienzoCamino.height = 1024;
     this.ctxCamino = this.lienzoCamino.getContext('2d');
     this.texCamino = new THREE.CanvasTexture(this.lienzoCamino);
+    // Bordes difusos: el camino se desvanece hacia las orillas, así no
+    // se ve el borde del rectángulo cuando la cámara se inclina.
+    const borde = document.createElement('canvas');
+    borde.width = borde.height = 256;
+    const cb = borde.getContext('2d');
+    const gb = cb.createRadialGradient(128, 128, 60, 128, 128, 128);
+    gb.addColorStop(0, '#fff');
+    gb.addColorStop(1, '#000');
+    cb.fillStyle = gb;
+    cb.fillRect(0, 0, 256, 256);
     this.matCamino = new THREE.MeshBasicMaterial({
-      map: this.texCamino, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+      map: this.texCamino, alphaMap: new THREE.CanvasTexture(borde),
+      transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
     });
     this.camino = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.matCamino);
     this.camino.position.z = -0.5;
@@ -201,27 +212,23 @@ export class Mundo {
     cp.fillStyle = gr2;
     cp.fillRect(0, 0, 32, 32);
     this.matPolvo = new THREE.PointsMaterial({
-      size: 0.6, map: new THREE.CanvasTexture(tp), color: 0xff5a4a, transparent: true, opacity: 0,
+      size: 0.7, map: new THREE.CanvasTexture(tp), color: 0xffc98a, transparent: true, opacity: 0,
       depthWrite: false, blending: THREE.AdditiveBlending,
     });
     this.polvo = new THREE.Points(gp, this.matPolvo);
     this.polvo.frustumCulled = false;
     this.escena.add(this.polvo);
-    this.polvoMeta = 0.3;
+    this.polvoMeta = 0.35;
 
-    // Los símbolos 3D de los que vuelven
-    this.simbolos = new Simbolos(this.escena, N);
-
-    // La cuadrícula del lado que copia: fría, exacta. No hace falta
-    // escribir "IA": con verla se entiende.
+    // La cuadrícula del lado que copia: fría y exacta. Con verla se
+    // entiende qué lado es, sin escribirlo.
     const lineas = [];
-    for (let x = CASILLA * 1.5; x < 200; x += CASILLA) lineas.push(x, -60, -0.3, x, 60, -0.3);
-    for (let y = -60 + ((60 % CASILLA) + CASILLA / 2); y < 60; y += CASILLA) lineas.push(CASILLA * 1.5, y, -0.3, 200, y, -0.3);
+    for (let x = CASILLA * 1.5; x < 220; x += CASILLA) lineas.push(x, -70, -0.3, x, 70, -0.3);
+    for (let y = -68 + CASILLA / 2; y < 70; y += CASILLA) lineas.push(CASILLA * 1.5, y, -0.3, 220, y, -0.3);
     const gg = new THREE.BufferGeometry();
     gg.setAttribute('position', new THREE.Float32BufferAttribute(lineas, 3));
-    this.matCuadricula = new THREE.LineBasicMaterial({ color: 0x8a8f96, transparent: true, opacity: 0, depthWrite: false });
-    this.cuadricula = new THREE.LineSegments(gg, this.matCuadricula);
-    this.escena.add(this.cuadricula);
+    this.matCuadricula = new THREE.LineBasicMaterial({ color: 0x8fa2b4, transparent: true, opacity: 0, depthWrite: false });
+    this.escena.add(new THREE.LineSegments(gg, this.matCuadricula));
     this.cuadriculaMeta = 0;
 
     // La frontera: una línea muy tenue en x = 0.
@@ -238,13 +245,14 @@ export class Mundo {
   // ---------- Estado ----------
   reiniciar() {
     for (const a of this.agentes) {
+      if (a.pieza) this.quitarPieza(a, true);
       a.reiniciar(
         -this.mx + 4 + Math.random() * (this.mx - 8),
         -this.my + 4 + Math.random() * (this.my * 2 - 8),
       );
     }
-    this.simbolos.esconderTodo();
-    this.encogiendo = [];
+    for (const p of this.piezasMuriendo) { this.escena.remove(p); liberarPieza(p); }
+    this.piezasMuriendo = [];
     this.copias.fill(null);
     this.casillas.clear();
     this.visibles = false;
@@ -262,16 +270,16 @@ export class Mundo {
     this.barrido = null;
     this.esfuerzo = 0;
     this.relojCopia = 0;
-    this.camMeta = new THREE.Vector3(0, 0, this.distancia);
-    this.mirarMeta = new THREE.Vector3(0, 0, 0);
     this.mirar = this.mirar || new THREE.Vector3(0, 0, 0);
+    this.camPos = this.camPos || new THREE.Vector3(0, 0, this.distancia);
+    this.flujo = 0;
     this.rescatados = 0;
     this.caminoMeta = 0;
     if (this.ctxCamino) this.ctxCamino.clearRect(0, 0, 2048, 1024);
     for (const a of this.agentes) a.huella = null;
   }
 
-  configurar(c) {
+  configurar(c, t = 0) {
     this.visibles = c.visibles;
     this.humanosActivos = c.humanos;
     this.atajoMeta = c.atajo;
@@ -282,11 +290,10 @@ export class Mundo {
     this.fronteraActiva = c.frontera;
     this.fronteraMeta = c.frontera ? (c.n === 0 ? 0.03 : 0.06) : 0;
     this.modo = c.modo;
-    const cam = c.cam || { x: 0, y: 0, z: 1, mx: 0 };
-    this.camMeta.set(cam.x * this.mx, cam.y, this.distancia * cam.z);
-    this.mirarMeta.set(cam.mx * this.mx, 0, 0);
     this.caminoMeta = c.camino ?? this.caminoMeta;
     this.cuadriculaMeta = c.cuadricula ?? 0;
+    this.flujo = c.flujo ?? 0;
+    if (c.plano) this.nuevoPlano(c.plano, t, true);
 
     if (c.copias && !this.copiasActivas) this.relojCopia = 999; // copia de inmediato
     this.copiasActivas = c.copias;
@@ -294,7 +301,7 @@ export class Mundo {
 
     if (c.modo === 'sinAyuda') {
       // Nadie ayuda: los que habían vuelto pierden lo que eran.
-      for (const a of this.agentes) if (a.estado === HIBRIDO) this.volverHumano(a, this.tAhora || 0);
+      for (const a of this.agentes) if (a.estado === HIBRIDO) this.volverHumano(a);
     }
     if (c.modo === 'conAyuda') { this.jardin = false; this.barrido = null; }
     if (c.modo === 'mensaje') { this.orbita = true; this.jardin = false; }
@@ -327,18 +334,26 @@ export class Mundo {
     a.vx *= 0.3; a.vy *= 0.3;
     a.nace = t;
     if (this.rescate) this.rescatados++;
-    a.tipo = this.simbolos.tipoDe(a.semilla);
-    a.giro = 0;
+    a.pieza = crearPieza(a.color, a.semilla);
     if (this.alNacer) this.alNacer(a, this.mx);
+    a.pieza.position.set(a.x, a.y, 0);
+    a.pieza.scale.setScalar(0.001);
+    this.escena.add(a.pieza);
     const copia = this.copias[a.id];
     if (copia) copia.vivo = false;
   }
 
-  volverHumano(a, t) {
-    // El símbolo se encoge y desaparece: lo que no se cuida se pierde.
-    this.encogiendo.push({ id: a.id, tipo: a.tipo, x: a.x, y: a.y, z: a.z, escala: this.escalaSimbolo(), t0: t });
+  volverHumano(a) {
+    this.quitarPieza(a, false);
     a.estado = HUMANO;
     a.z = 0;
+  }
+
+  quitarPieza(a, inmediato) {
+    if (!a.pieza) return;
+    if (inmediato) { this.escena.remove(a.pieza); liberarPieza(a.pieza); }
+    else this.piezasMuriendo.push(a.pieza);
+    a.pieza = null;
   }
 
   // ---------- Casillas del lado IA ----------
@@ -403,6 +418,7 @@ export class Mundo {
       for (const a of humanos) {
         bandada(a, humanos, P_HUMANO);
         deambular(a, t, P_HUMANO);
+        if (this.flujo > 0) fluir(a, t, P_HUMANO, this.flujo);
         // Cada agente cede en su propio momento: no es una avalancha,
         // es uno por uno.
         const tentado = this.fronteraActiva && transcurrido >= 0 && transcurrido > a.momento * this.ventanaAtajo;
@@ -499,18 +515,21 @@ export class Mundo {
     }
 
     // --- Híbridos ---
-    this.simbolos.empezarCuadro();
     const hib = ag.filter((a) => a.estado === HIBRIDO);
     for (const a of hib) {
       let zBase = 0;
       if (this.orbita) {
-        // Un anillo inclinado que gira alrededor de la respuesta.
-        const ang = (this.ordenTono[a.id] / N) * Math.PI * 2 + t * 0.045;
-        const mx = Math.cos(ang) * this.mx * 0.84;
-        const my = Math.sin(ang) * this.my * 1.02;
-        zBase = Math.sin(ang) * -16 - 4;
-        a.x += (mx - a.x) * 0.03 * k;
-        a.y += (my - a.y) * 0.03 * k;
+        // Una espiral como una galaxia: el ángulo áureo de los girasoles,
+        // girando más rápido en el centro que en los bordes.
+        const i = this.ordenTono[a.id];
+        const r = 0.3 + 0.7 * Math.sqrt((i + 0.5) / N); // el centro queda vacío, como el ojo de un huracán
+        const ang = i * 2.39996 + t * (0.04 + 0.2 * (1 - r));
+        const R = Math.min(this.mx, this.my * 1.6) * 0.92;
+        const mx = Math.cos(ang) * r * R;
+        const my = Math.sin(ang) * r * R;
+        zBase = (1 - r) * 18 + Math.sin(ang * 2 + t * 0.3) * 2.5;
+        a.x += (mx - a.x) * 0.025 * k;
+        a.y += (my - a.y) * 0.025 * k;
       } else if (this.jardin) {
         const m = a.meta;
         a.x += (m.x - a.x) * 0.02 * k;
@@ -524,30 +543,19 @@ export class Mundo {
         integrar(a, P_HIBRIDO.vmax, k);
       }
       a.z += (zBase - a.z) * 0.03 * k;
-      this.animarSimbolo(a, t, dt);
+      this.animarPieza(a, t, dt);
     }
 
-    // --- Símbolos que se pierden ---
-    this.encogiendo = this.encogiendo.filter((e) => {
-      const f = (t - e.t0) / 0.9;
-      const ag = this.agentes[e.id];
-      if (f >= 1 || ag.estado === HIBRIDO) {
-        return false;
-      }
-      this.simbolos.colocar(e.id, e.tipo, e.x, e.y, e.z, 0, f * 3, 0, e.escala * (1 - f));
+    // --- Piezas que se desvanecen ---
+    this.piezasMuriendo = this.piezasMuriendo.filter((p) => {
+      p.material.opacity *= Math.pow(0.9, k);
+      p.scale.multiplyScalar(Math.pow(0.985, k));
+      if (p.material.opacity < 0.01) { this.escena.remove(p); liberarPieza(p); return false; }
       return true;
     });
-    this.simbolos.actualizar();
-    this.tAhora = t;
 
     // --- Cámara y frontera ---
-    if (this.jardin && !this.orbita) this.camMeta.set(0, -40, this.distancia * 0.9);
-    this.camara.position.lerp(this.camMeta, 0.012 * k);
-    // Un leve vaivén, como una cámara en mano.
-    this.camara.position.x += ruido(t * 0.07, 3.1) * 0.05 * k;
-    this.camara.position.y += ruido(t * 0.07, 7.7) * 0.05 * k;
-    this.mirar.lerp(this.mirarMeta, 0.012 * k);
-    this.camara.lookAt(this.mirar);
+    this.moverCamara(t, k);
 
     this.pintarCamino();
     this.matCamino.opacity += (this.caminoMeta - this.matCamino.opacity) * 0.02 * k;
@@ -564,6 +572,7 @@ export class Mundo {
     this.polvo.geometry.attributes.position.needsUpdate = true;
     this.matFrontera.opacity += (this.fronteraMeta - this.matFrontera.opacity) * 0.04 * k;
     this.matCuadricula.opacity += (this.cuadriculaMeta - this.matCuadricula.opacity) * 0.03 * k;
+    this.tAhora = t;
     this.frontera.scale.y = this.my / 50;
 
     this.dibujar();
@@ -592,8 +601,8 @@ export class Mundo {
       if (!anterior || a.estado === RIGIDO || a.alpha < 0.2) continue;
       if (Math.hypot(u - anterior.u, v - anterior.v) > 40) continue; // saltos, no pasos
       const hibrido = a.estado === HIBRIDO;
-      const r = Math.round(150 + a.color.r * 105), g = Math.round(a.color.g * 60 + 10), b = Math.round(a.color.b * 50 + 15);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${hibrido ? 0.1 : 0.07})`;
+      const r = Math.round(a.color.r * 100 + 155), g = Math.round(a.color.g * 80 + 120), b = Math.round(a.color.b * 50 + 60);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${hibrido ? 0.09 : 0.06})`;
       ctx.lineWidth = hibrido ? 2.4 : 1.3;
       ctx.beginPath();
       ctx.moveTo(anterior.u, anterior.v);
@@ -603,7 +612,56 @@ export class Mundo {
     if (this.cuadro % 3 === 0) this.texCamino.needsUpdate = true;
   }
 
+  // ---------- Cámara ----------
+  // Un plano es un movimiento de cámara: desde -> hasta en `dur` segundos.
+  // Cada punto dice hacia dónde mira (mx), cuánto gira alrededor (g),
+  // a qué distancia está (d) y a qué altura (h).
+  nuevoPlano(plano, t, cortar = false) {
+    this.plano = { ...plano, t0: t };
+    if (cortar) {
+      // Corte: la cámara salta al inicio del plano (sucede en negro).
+      const p = this.puntoDelPlano(plano.desde);
+      this.camPos.copy(p.pos);
+      this.mirar.copy(p.mirar);
+      this.camara.position.copy(p.pos);
+    }
+  }
+
+  puntoDelPlano(q) {
+    const mirar = new THREE.Vector3(q.mx * this.mx, 0, 0);
+    const d = q.d * this.distancia;
+    const pos = new THREE.Vector3(mirar.x + Math.sin(q.g) * d, q.h, Math.cos(q.g) * d);
+    return { pos, mirar };
+  }
+
+  moverCamara(t, k) {
+    if (!this.plano) return;
+    const f = Math.min(1, Math.max(0, (t - this.plano.t0) / this.plano.dur));
+    const e = f * f * (3 - 2 * f); // empieza y termina suave
+    const a = this.plano.desde, b = this.plano.hasta;
+    const q = {
+      mx: a.mx + (b.mx - a.mx) * e, g: a.g + (b.g - a.g) * e,
+      d: a.d + (b.d - a.d) * e, h: a.h + (b.h - a.h) * e,
+    };
+    // Respiración lenta: la cámara nunca está del todo quieta.
+    q.g += Math.sin(t * 0.11) * 0.025;
+    q.h += Math.sin(t * 0.07 + 1) * 1.2;
+    const p = this.puntoDelPlano(q);
+    this.camPos.lerp(p.pos, 0.06 * k);
+    this.mirar.lerp(p.mirar, 0.06 * k);
+    this.camara.position.copy(this.camPos);
+    // Un leve vaivén, como una cámara en mano.
+    this.camara.position.x += ruido(t * 0.13, 3.1) * 0.35;
+    this.camara.position.y += ruido(t * 0.13, 7.7) * 0.35;
+    this.camara.lookAt(this.mirar);
+  }
+
   armarJardin() {
+    // La cámara sube despacio para ver el jardín desde arriba.
+    if (this.plano) {
+      const actual = this.plano.hasta;
+      this.nuevoPlano({ desde: actual, hasta: { mx: 0, g: 0.05, d: 0.92, h: -42 }, dur: 16 }, this.tAhora || 0);
+    }
     // Filotaxis: el mismo ángulo áureo de los girasoles, ahora a gran escala.
     this.jardin = true;
     for (const a of this.agentes) {
@@ -618,21 +676,23 @@ export class Mundo {
     }
   }
 
-  escalaSimbolo() { return this.jardin ? 2.15 : this.orbita ? 2.5 : 3.3; }
-
-  animarSimbolo(a, t, dt) {
+  animarPieza(a, t, dt) {
+    const p = a.pieza;
+    if (!p) return;
     const edad = t - a.nace;
-    // Nacimiento: crece con un rebote y salta hacia quien mira, girando.
-    const f = Math.min(1, edad / 1.2);
-    const rebote = 1 + 2.4 * Math.pow(f - 1, 3) + 1.3 * Math.pow(f - 1, 2);
-    const salto = edad < 2.4 ? Math.sin((Math.PI * edad) / 2.4) * 16 : 0;
-    const vuelta = edad < 1.6 ? (1 - edad / 1.6) * Math.PI * 2 : 0;
-    const fase = a.semilla;
-    const ry = a.tipo === 'balon' ? t * 0.8 + fase : Math.sin(t * 0.45 + fase) * 0.75;
-    const rx = 0.25 * Math.sin(t * 0.37 + fase * 2);
-    const rz = 0.12 * Math.sin(t * 0.29 + fase * 3);
-    this.simbolos.colocar(a.id, a.tipo, a.x, a.y, a.z + salto + ruido(fase, t * 0.3) * 1.2,
-      rx, ry + vuelta, rz, this.escalaSimbolo() * rebote * (this.visibles ? 1 : 0));
+    // Nacimiento: crece con un pequeño rebote y salta hacia el espectador.
+    const f = Math.min(1, edad / 1.4);
+    const rebote = 1 + 2.2 * Math.pow(f - 1, 3) + 1.2 * Math.pow(f - 1, 2);
+    const salto = edad < 2.6 ? Math.sin((Math.PI * edad) / 2.6) * 14 : 0;
+    const escala = (this.jardin ? 2.3 : this.orbita ? 2.2 : 2.7) * rebote;
+    p.scale.setScalar(Math.max(0.001, escala));
+    p.position.set(a.x, a.y, a.z + salto + ruido(a.semilla, t * 0.3) * 1.5);
+    const u = p.userData;
+    p.rotation.z += u.giro * dt * 0.4;
+    p.rotation.x = 0.55 * Math.sin(t * 0.4 + u.inclinacion);
+    p.rotation.y = 0.55 * Math.cos(t * 0.33 + u.inclinacion);
+    const meta = this.visibles ? 0.95 : 0;
+    p.material.opacity += (meta - p.material.opacity) * 0.05;
   }
 
   // ---------- Volcar todo a los buffers de la GPU ----------

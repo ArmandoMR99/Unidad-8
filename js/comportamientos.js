@@ -64,6 +64,15 @@ export function deambular(a, t, P) {
   a.fuerza(fx * P.wDea, fy * P.wDea);
 }
 
+// Campo de flujo: el ruido de Perlin define una corriente en cada
+// punto del espacio, que cambia lento con el tiempo. Los agentes se
+// dejan llevar un poco por ella y forman ríos que se cruzan.
+export function fluir(a, t, P, peso) {
+  const ang = ruido(a.x * 0.018 + 40, a.y * 0.018, t * 0.04) * Math.PI * 3;
+  const [fx, fy] = dirigir(a, Math.cos(ang), Math.sin(ang), P.vmax, P.fmax);
+  a.fuerza(fx * peso, fy * peso);
+}
+
 // Paredes suaves: cuanto más cerca del borde, más fuerte el giro.
 export function paredes(a, xmin, xmax, ymin, ymax, margen, fuerza) {
   if (a.x < xmin + margen) a.fuerza(fuerza * (1 - (a.x - xmin) / margen), 0);

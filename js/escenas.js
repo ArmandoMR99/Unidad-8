@@ -1,36 +1,49 @@
 // CAPÍTULOS
 // La obra avanza con clics, como una película:
 //
-//   0  portada (un ensō se pinta solo)
-//   1  道 el camino      cada uno inventa su camino y lo deja en tinta
-//   2  写 la copia       del otro lado, una cuadrícula que imita
-//   3  楽 lo cómodo      uno a uno ceden y cruzan
-//   4  努 el esfuerzo    rescatarlos con el mouse; vuelven como símbolos
-//   5  静 el silencio    si nadie lo hace, todo queda quieto
-//   6  咲 florecer       al pasar sobre ellos, todos se vuelven símbolos
-//   7  la reflexión     dentro de un ensō, con los símbolos girando
+//   0    portada
+//   I    los que deciden
+//   II   los que copian
+//   III  el atajo
+//   IV   tomarse el trabajo   (rescatar con el mouse)
+//   V    si nadie lo hace
+//   VI   si alguien lo hace   (pasar el cursor)
+//   7    epílogo: la pregunta y la respuesta
+//
+// Entre capítulos hay un fundido a negro. Mientras la pantalla está
+// negra la cámara se coloca en su posición de inicio, y cuando vuelve
+// la imagen hace su propio movimiento (acercarse, recorrer, alejarse).
 
 import {
   TITULO, SUBTITULO, EMPEZAR, CONTINUAR, CAPITULOS,
-  REFLEXION, PREGUNTA_FINAL, RESPUESTA_FINAL, REINICIAR,
+  PREGUNTA, RESPUESTA, REINICIAR,
 } from './guion.js';
 
 const $ = (id) => document.getElementById(id);
 export const TOTAL = 8;
 
-// Qué se enciende en el mundo en cada capítulo y hacia dónde va la cámara.
-// cam: x (fracción del ancho), y, z (fracción de la distancia), mx (hacia dónde mira).
+// Movimiento de cámara de cada capítulo: desde -> hasta, en `dur` segundos.
+// mx: hacia dónde mira (fracción del ancho) · g: giro horizontal (rad)
+// d: distancia (fracción) · h: altura · dur: segundos del movimiento
+const PLANOS = [
+  { desde: { mx: 0, g: 0, d: 1.3, h: 0 }, hasta: { mx: 0, g: 0, d: 1.15, h: 0 }, dur: 20 },
+  // I: empieza muy cerca y bajo, entre ellos, y se aleja despacio
+  { desde: { mx: -0.55, g: -0.42, d: 0.42, h: -8 }, hasta: { mx: -0.4, g: 0.06, d: 0.85, h: -2 }, dur: 26 },
+  // II: un paneo largo que descubre el otro lado
+  { desde: { mx: -0.3, g: -0.12, d: 0.82, h: 0 }, hasta: { mx: 0.36, g: 0.22, d: 0.86, h: 3 }, dur: 22 },
+  // III: desde la cuadrícula, girando hacia el centro
+  { desde: { mx: 0.45, g: 0.38, d: 0.7, h: 6 }, hasta: { mx: 0.02, g: -0.06, d: 1.0, h: -2 }, dur: 30 },
+  // IV: se acomoda de frente para poder jugar
+  { desde: { mx: 0.12, g: 0.16, d: 1.15, h: 0 }, hasta: { mx: 0, g: 0, d: 1.0, h: 0 }, dur: 6 },
+  // V: se aleja, solo, como quien se va
+  { desde: { mx: 0.05, g: 0, d: 0.9, h: 0 }, hasta: { mx: 0.22, g: 0.2, d: 1.45, h: 10 }, dur: 34 },
+  // VI: de frente, un poco lejos
+  { desde: { mx: 0, g: -0.1, d: 1.12, h: 0 }, hasta: { mx: 0, g: 0, d: 1.0, h: 0 }, dur: 8 },
+  // Epílogo: desde arriba y lejos, entrando lento a la espiral
+  { desde: { mx: 0, g: 0, d: 1.75, h: -70 }, hasta: { mx: 0, g: 0.12, d: 1.0, h: -30 }, dur: 46 },
+];
+
 function configuracion(n) {
-  const camaras = [
-    { x: 0, y: 0, z: 1.15, mx: 0 },
-    { x: -0.34, y: -4, z: 0.8, mx: -0.44 },
-    { x: 0.3, y: 2, z: 0.88, mx: 0.38 },
-    { x: 0.04, y: -3, z: 0.98, mx: 0.05 },
-    { x: 0, y: 0, z: 1, mx: 0 },
-    { x: 0.14, y: 0, z: 1.12, mx: 0.16 },
-    { x: 0, y: 0, z: 1, mx: 0 },
-    { x: 0, y: -20, z: 1.05, mx: 0 },
-  ];
   return {
     n,
     visibles: n >= 1,
@@ -42,45 +55,64 @@ function configuracion(n) {
     cursorAprende: n === 6,
     frontera: n <= 5,
     modo: n === 5 ? 'sinAyuda' : n === 6 ? 'conAyuda' : n === 7 ? 'mensaje' : null,
-    cam: camaras[n],
-    camino: [0, 0.95, 0.8, 0.9, 1, 0.35, 1, 0.75][n],
-    cuadricula: [0, 0, 0.2, 0.26, 0.22, 0.34, 0, 0][n],
+    plano: PLANOS[n],
+    camino: [0, 0.95, 0.8, 0.9, 1, 0.4, 1, 0.45][n],
+    cuadricula: [0, 0, 0.16, 0.2, 0.18, 0.28, 0, 0][n],
+    flujo: [0, 0.75, 0.6, 0.5, 0.5, 0.3, 0.6, 0][n],
   };
 }
 
 export class Escenas {
-  constructor(mundo, sonido, pincel) {
+  constructor(mundo, sonido) {
     this.m = mundo;
     this.sonido = sonido;
-    this.pincel = pincel;
     this.actual = -1;
     this.t = 0;
     this.inicioCapitulo = 0;
     this.temporizadores = [];
     this.escribiendo = null;
     this.listo = false;
+    this.enTransicion = false;
 
     $('titulo').textContent = TITULO;
     $('subtitulo').textContent = SUBTITULO;
     $('empezar').textContent = EMPEZAR;
     $('pista').textContent = CONTINUAR;
+    $('pregunta').textContent = PREGUNTA;
+    $('respuesta').textContent = RESPUESTA;
+    $('final-titulo').textContent = TITULO;
     $('reiniciar').textContent = REINICIAR;
+    $('continuar').textContent = 'continuar';
     $('continuar').addEventListener('click', (e) => { e.stopPropagation(); this.siguiente(); });
-    this.ir(0);
+    this.cambiar(0, false, true);
   }
 
   get interactivo() { return this.actual === 4 || this.actual === 6; }
 
+  // Ir a un capítulo, con fundido a negro.
   ir(n, reiniciar = false) {
     n = Math.max(0, Math.min(TOTAL - 1, n));
-    if (n === this.actual && !reiniciar) return;
+    if ((n === this.actual && !reiniciar) || this.enTransicion) return;
+    this.enTransicion = true;
+    this.limpiar();
+    this.mostrarPista(false);
+    $('frase').classList.add('oculto');
+    document.body.classList.add('fundido');
+    const espera = n === 1 && this.actual === 0 ? 1.6 : 1.1;
+    setTimeout(() => this.cambiar(n, reiniciar), espera * 1000);
+  }
+
+  cambiar(n, reiniciar, inmediato = false) {
     if (reiniciar || n < this.actual) this.m.reiniciar();
-    this.previo = this.actual;
     this.actual = n;
     this.inicioCapitulo = this.t;
-    this.m.configurar(configuracion(n));
+    this.m.configurar(configuracion(n), this.t);
     this.sonido.capitulo(n);
     this.montar(n);
+    setTimeout(() => {
+      document.body.classList.remove('fundido');
+      this.enTransicion = false;
+    }, inmediato ? 0 : 250);
   }
 
   siguiente() {
@@ -90,7 +122,7 @@ export class Escenas {
   anterior() { this.ir(this.actual - 1); }
 
   clic() {
-    if (this.interactivo) return;
+    if (this.interactivo || this.enTransicion) return;
     if (this.escribiendo) { this.completar(); return; }
     if (this.listo || this.actual === 0) this.siguiente();
   }
@@ -120,7 +152,7 @@ export class Escenas {
     const ids = [];
     let demora = 0;
     [...texto].forEach((c, i) => {
-      demora += 0.05 + (/[.,:?]/.test(texto[i - 1] || '') ? 0.45 : 0);
+      demora += 0.052 + (/[.,:?]/.test(texto[i - 1] || '') ? 0.5 : 0);
       ids.push(setTimeout(() => { letras.textContent += c; }, demora * 1000));
     });
     const fin = () => {
@@ -140,7 +172,7 @@ export class Escenas {
   escribirVarias(frases, alTerminar) {
     const sig = (i) => {
       if (i >= frases.length) { if (alTerminar) alTerminar(); return; }
-      this.escribir(frases[i], () => this.despues(i < frases.length - 1 ? 1.8 : 0, () => sig(i + 1)));
+      this.escribir(frases[i], () => this.despues(i < frases.length - 1 ? 1.9 : 0, () => sig(i + 1)));
     };
     sig(0);
   }
@@ -151,91 +183,44 @@ export class Escenas {
     $('continuar').classList.toggle('visible', si && this.interactivo);
   }
 
-  // La tinta del lienzo de encima: se apaga y se limpia.
-  apagarTinta(despues = 0) {
-    this.despues(despues, () => {
-      $('tinta').classList.add('apagada');
-      this.despues(1.7, () => { this.pincel.limpiar(); $('tinta').classList.remove('apagada'); });
-    });
-  }
-
   montar(n) {
     this.limpiar();
     this.mostrarPista(false);
     this.rescateAnunciado = false;
     this.finAnunciado = false;
     const body = document.body;
-    const w = window.innerWidth, h = window.innerHeight;
 
     $('portada').classList.toggle('oculto', n !== 0);
     $('frase').classList.add('oculto');
     body.classList.toggle('unido', n >= 6);
     body.classList.toggle('cine', n >= 1 && n <= 6);
-    for (const id of ['reflexion-linea', 'reflexion-respuesta', 'reflexion-sello', 'reiniciar']) $(id).classList.remove('visible');
-    $('reflexion-linea').classList.remove('pregunta');
+    body.classList.toggle('epilogo', n === 7);
+    for (const id of ['pregunta', 'respuesta', 'final-titulo', 'reiniciar']) $(id).classList.remove('visible');
     $('tarjeta').classList.remove('visible');
-
-    // Al salir de la portada, el ensō se desvanece en lugar de desaparecer de golpe.
-    let o = 0;
-    if (this.previo === 0 && n !== 0) {
-      o = 1.5;
-      $('tinta').classList.add('apagada');
-      this.despues(1.6, () => { this.pincel.limpiar(); $('tinta').classList.remove('apagada'); });
-    } else {
-      this.pincel.limpiar();
-      $('tinta').classList.remove('apagada');
-    }
-
-    if (n === 0) {
-      // Portada: un ensō rojo se pinta solo alrededor del título.
-      this.despues(0.6, () => this.pincel.enso(w / 2, h / 2 - h * 0.02, Math.min(w, h) * 0.34, { duracion: 2.6 }));
-      return;
-    }
 
     const cap = CAPITULOS[n];
     if (cap) {
-      // Tarjeta de capítulo: un trazo de pincel, el sello y el título.
-      this.despues(o + 0.25, () => this.pincel.barrido(h / 2 + h * 0.035));
-      $('tarjeta-sello').textContent = cap.kanji;
+      $('tarjeta-numero').textContent = cap.numero;
       $('tarjeta-titulo').textContent = cap.titulo;
-      this.despues(o + 0.15, () => $('tarjeta').classList.add('visible'));
-      this.despues(o + 3, () => $('tarjeta').classList.remove('visible'));
-      this.apagarTinta(o + 2.9);
-      this.despues(o + 3.8, () => this.escribirVarias(cap.frases, () => {
+      this.despues(0.6, () => $('tarjeta').classList.add('visible'));
+      this.despues(4.2, () => $('tarjeta').classList.remove('visible'));
+      this.despues(5.2, () => this.escribirVarias(cap.frases, () => {
         if (!this.interactivo) this.mostrarPista(true);
       }));
-      return;
     }
 
-    if (n === 7) this.reflexion(w, h);
-  }
-
-  // La reflexión final: un ensō grande, las líneas una a una, y la respuesta.
-  reflexion(w, h) {
-    this.despues(1, () => this.pincel.enso(w / 2, h / 2, Math.min(w, h) * 0.36, { duracion: 4.5, seco: 0.6 }));
-    const linea = $('reflexion-linea');
-    let t = 6.5; // primero el ensō y que los símbolos formen el anillo
-    REFLEXION.forEach((texto) => {
-      this.despues(t, () => { linea.textContent = texto; linea.classList.add('visible'); });
-      this.despues(t + 3.4, () => linea.classList.remove('visible'));
-      t += 4.4;
-    });
-    this.despues(t, () => {
-      linea.textContent = PREGUNTA_FINAL;
-      linea.classList.add('pregunta', 'visible');
-    });
-    this.despues(t + 2.6, () => {
-      $('reflexion-respuesta').textContent = RESPUESTA_FINAL;
-      $('reflexion-respuesta').classList.add('visible');
-      this.sonido.acorde();
-    });
-    this.despues(t + 4.2, () => $('reflexion-sello').classList.add('visible'));
-    this.despues(t + 8, () => { $('reiniciar').classList.add('visible'); this.listo = true; });
+    if (n === 7) {
+      // Epílogo: la espiral se forma, la cámara entra en ella, y aparece la respuesta.
+      this.despues(9, () => $('pregunta').classList.add('visible'));
+      this.despues(14, () => { $('respuesta').classList.add('visible'); this.sonido.acorde(); });
+      this.despues(27, () => { $('pregunta').classList.remove('visible'); $('respuesta').classList.remove('visible'); });
+      this.despues(30, () => $('final-titulo').classList.add('visible'));
+      this.despues(34, () => { $('reiniciar').classList.add('visible'); this.listo = true; });
+    }
   }
 
   actualizar(dt, t) {
     this.t = t;
-    this.pincel.actualizar();
     const enCap = t - this.inicioCapitulo;
 
     if (this.actual === 4) {
@@ -247,10 +232,10 @@ export class Escenas {
     }
 
     if (this.actual === 6) {
-      if (enCap > 22 && this.m.barrido === null && !this.m.jardin) this.m.iniciarBarrido();
+      if (enCap > 24 && this.m.barrido === null && !this.m.jardin) this.m.iniciarBarrido();
       if (this.m.jardin && !this.finAnunciado) {
         this.finAnunciado = true;
-        this.despues(2.5, () => this.escribir(CAPITULOS[6].alTerminar, () => this.despues(1.5, () => this.mostrarPista(true))));
+        this.despues(3, () => this.escribir(CAPITULOS[6].alTerminar, () => this.despues(1.5, () => this.mostrarPista(true))));
       }
     }
 
@@ -261,10 +246,10 @@ export class Escenas {
     const cursor = $('cursor');
     const punto = cursor.firstElementChild;
     const pxPorUnidad = window.innerHeight / 100;
-    let anillo = 26, centro = 5;
+    let anillo = 26, centro = 4;
     if (this.actual === 4) {
       anillo = 26 + this.m.esfuerzo * 44;
-      centro = 5 + this.m.esfuerzo * 24;
+      centro = 4 + this.m.esfuerzo * 24;
     } else if (this.actual === 6 && !this.m.jardin) {
       anillo = 22 * pxPorUnidad;
     }

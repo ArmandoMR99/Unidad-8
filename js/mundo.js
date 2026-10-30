@@ -102,7 +102,10 @@ export class Mundo {
     // Colores: cada agente tiene el suyo y lo conserva siempre.
     this.agentes = [];
     for (let i = 0; i < N; i++) {
-      const c = new THREE.Color().setHSL(Math.random(), 0.62 + Math.random() * 0.25, 0.58 + Math.random() * 0.1);
+      // Paleta cálida: sobre todo ámbar, rosa y oro, con unos pocos turquesa.
+      const r = Math.random();
+      const tono = r < 0.78 ? (0.94 + Math.random() * 0.2) % 1 : 0.45 + Math.random() * 0.12;
+      const c = new THREE.Color().setHSL(tono, 0.7 + Math.random() * 0.25, 0.6 + Math.random() * 0.1);
       this.agentes.push(new Agente(i, c));
     }
     // Orden por tono: se usa para el jardín y la órbita (degradado de color).
@@ -163,6 +166,49 @@ export class Mundo {
     this.rastros.renderOrder = 1;
     this.escena.add(this.rastros);
 
+    // El camino: un lienzo donde los pasos de los humanos quedan pintados.
+    // Los rígidos no dejan huella.
+    this.lienzoCamino = document.createElement('canvas');
+    this.lienzoCamino.width = 2048;
+    this.lienzoCamino.height = 1024;
+    this.ctxCamino = this.lienzoCamino.getContext('2d');
+    this.texCamino = new THREE.CanvasTexture(this.lienzoCamino);
+    this.matCamino = new THREE.MeshBasicMaterial({
+      map: this.texCamino, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+    this.camino = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), this.matCamino);
+    this.camino.position.z = -0.5;
+    this.camino.renderOrder = 0;
+    this.escena.add(this.camino);
+    this.caminoMeta = 0;
+    this.cuadro = 0;
+
+    // Polvo en el aire: da profundidad cuando la cámara se mueve.
+    const P = 380;
+    this.polvoDatos = [];
+    const pp = new Float32Array(P * 3);
+    for (let i = 0; i < P; i++) {
+      this.polvoDatos.push({ x: (Math.random() - 0.5) * 300, y: (Math.random() - 0.5) * 140, z: -70 + Math.random() * 95, s: Math.random() * 100 });
+    }
+    const gp = new THREE.BufferGeometry();
+    gp.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+    const tp = document.createElement('canvas');
+    tp.width = tp.height = 32;
+    const cp = tp.getContext('2d');
+    const gr2 = cp.createRadialGradient(16, 16, 0, 16, 16, 16);
+    gr2.addColorStop(0, 'rgba(255,255,255,1)');
+    gr2.addColorStop(1, 'rgba(255,255,255,0)');
+    cp.fillStyle = gr2;
+    cp.fillRect(0, 0, 32, 32);
+    this.matPolvo = new THREE.PointsMaterial({
+      size: 0.7, map: new THREE.CanvasTexture(tp), color: 0xffc98a, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending,
+    });
+    this.polvo = new THREE.Points(gp, this.matPolvo);
+    this.polvo.frustumCulled = false;
+    this.escena.add(this.polvo);
+    this.polvoMeta = 0.35;
+
     // La frontera: una línea muy tenue en x = 0.
     this.matFrontera = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false });
     this.frontera = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 100), this.matFrontera);
@@ -203,6 +249,12 @@ export class Mundo {
     this.esfuerzo = 0;
     this.relojCopia = 0;
     this.camMeta = new THREE.Vector3(0, 0, this.distancia);
+    this.mirarMeta = new THREE.Vector3(0, 0, 0);
+    this.mirar = this.mirar || new THREE.Vector3(0, 0, 0);
+    this.rescatados = 0;
+    this.caminoMeta = 0;
+    if (this.ctxCamino) this.ctxCamino.clearRect(0, 0, 2048, 1024);
+    for (const a of this.agentes) a.huella = null;
   }
 
   configurar(c) {
@@ -216,7 +268,10 @@ export class Mundo {
     this.fronteraActiva = c.frontera;
     this.fronteraMeta = c.frontera ? (c.n === 0 ? 0.03 : 0.06) : 0;
     this.modo = c.modo;
-    this.camMeta.set(0, 0, this.distancia);
+    const cam = c.cam || { x: 0, y: 0, z: 1, mx: 0 };
+    this.camMeta.set(cam.x * this.mx, cam.y, this.distancia * cam.z);
+    this.mirarMeta.set(cam.mx * this.mx, 0, 0);
+    this.caminoMeta = c.camino ?? this.caminoMeta;
 
     if (c.copias && !this.copiasActivas) this.relojCopia = 999; // copia de inmediato
     this.copiasActivas = c.copias;
@@ -256,6 +311,7 @@ export class Mundo {
     a.rastro.length = 0;
     a.vx *= 0.3; a.vy *= 0.3;
     a.nace = t;
+    if (this.rescate) this.rescatados++;
     a.pieza = crearPieza(a.color, a.semilla);
     if (this.alNacer) this.alNacer(a, this.mx);
     a.pieza.position.set(a.x, a.y, 0);
@@ -472,14 +528,65 @@ export class Mundo {
     });
 
     // --- Cámara y frontera ---
-    if (this.jardin) this.camMeta.set(0, -34, this.distancia * 0.93);
-    if (this.orbita) this.camMeta.set(0, -16, this.distancia * 1.02);
-    this.camara.position.lerp(this.camMeta, 0.015 * k);
-    this.camara.lookAt(0, 0, 0);
+    if (this.jardin && !this.orbita) this.camMeta.set(0, -40, this.distancia * 0.9);
+    this.camara.position.lerp(this.camMeta, 0.012 * k);
+    // Un leve vaivén, como una cámara en mano.
+    this.camara.position.x += ruido(t * 0.07, 3.1) * 0.05 * k;
+    this.camara.position.y += ruido(t * 0.07, 7.7) * 0.05 * k;
+    this.mirar.lerp(this.mirarMeta, 0.012 * k);
+    this.camara.lookAt(this.mirar);
+
+    this.pintarCamino();
+    this.matCamino.opacity += (this.caminoMeta - this.matCamino.opacity) * 0.02 * k;
+    this.camino.scale.set(this.mx * 2, this.my * 2, 1);
+    this.matPolvo.opacity += (this.polvoMeta - this.matPolvo.opacity) * 0.02 * k;
+    const pos = this.polvo.geometry.attributes.position.array;
+    this.polvoDatos.forEach((d, i) => {
+      d.y += 0.012 * k;
+      if (d.y > 70) d.y = -70;
+      pos[i * 3] = d.x + ruido(d.s, t * 0.05) * 6;
+      pos[i * 3 + 1] = d.y;
+      pos[i * 3 + 2] = d.z;
+    });
+    this.polvo.geometry.attributes.position.needsUpdate = true;
     this.matFrontera.opacity += (this.fronteraMeta - this.matFrontera.opacity) * 0.04 * k;
     this.frontera.scale.y = this.my / 50;
 
     this.dibujar();
+  }
+
+  // Cada humano pinta una línea fina desde donde estaba hasta donde está.
+  // Con el tiempo esas líneas se vuelven senderos: el camino lo hacen los pasos.
+  // Lo más viejo se desvanece muy despacio, lo que se repite queda brillando.
+  pintarCamino() {
+    if (!this.visibles) return;
+    const ctx = this.ctxCamino;
+    const W = 2048, H = 1024;
+    this.cuadro++;
+    if (this.cuadro % 20 === 0) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,0.02)';
+      ctx.fillRect(0, 0, W, H);
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    for (const a of this.agentes) {
+      const u = ((a.x + this.mx) / (2 * this.mx)) * W;
+      const v = ((this.my - a.y) / (2 * this.my)) * H;
+      const anterior = a.huella;
+      a.huella = { u, v };
+      if (!anterior || a.estado === RIGIDO || a.alpha < 0.2) continue;
+      if (Math.hypot(u - anterior.u, v - anterior.v) > 40) continue; // saltos, no pasos
+      const hibrido = a.estado === HIBRIDO;
+      const r = Math.round(a.color.r * 100 + 155), g = Math.round(a.color.g * 80 + 120), b = Math.round(a.color.b * 50 + 60);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${hibrido ? 0.09 : 0.06})`;
+      ctx.lineWidth = hibrido ? 2.4 : 1.3;
+      ctx.beginPath();
+      ctx.moveTo(anterior.u, anterior.v);
+      ctx.lineTo(u, v);
+      ctx.stroke();
+    }
+    if (this.cuadro % 3 === 0) this.texCamino.needsUpdate = true;
   }
 
   armarJardin() {

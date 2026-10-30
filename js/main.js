@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { Mundo } from './mundo.js';
 import { Escenas } from './escenas.js';
 import { Sonido } from './sonido.js';
+import { PISTA_PROPIA } from './guion.js';
 
 const lienzo = document.getElementById('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true });
@@ -21,7 +22,7 @@ const DISTANCIA = 50 / Math.tan(THREE.MathUtils.degToRad(FOV / 2)); // así el a
 camara.position.set(0, 0, DISTANCIA);
 
 const mundo = new Mundo(escena, camara, DISTANCIA);
-const sonido = new Sonido();
+const sonido = new Sonido(PISTA_PROPIA);
 mundo.alNacer = (a, mx) => sonido.nota(a, mx);
 mundo.alLlegar = (a, mx) => sonido.clic(a, mx);
 const escenas = new Escenas(mundo, sonido);
@@ -69,20 +70,36 @@ function alternarSonido() {
 }
 botonSonido.addEventListener('click', (e) => { e.stopPropagation(); alternarSonido(); });
 window.addEventListener('pointerdown', () => sonido.despertar());
-lienzo.addEventListener('pointerdown', (e) => { moverPuntero(e); mundo.puntero.abajo = true; lienzo.setPointerCapture(e.pointerId); });
-lienzo.addEventListener('pointerup', () => { mundo.puntero.abajo = false; });
+// Un clic corto (sin arrastrar) sobre la obra la hace avanzar,
+// excepto en los capítulos donde el mouse sirve para jugar.
+let inicioClic = null;
+lienzo.addEventListener('pointerdown', (e) => {
+  moverPuntero(e);
+  mundo.puntero.abajo = true;
+  lienzo.setPointerCapture(e.pointerId);
+  inicioClic = { x: e.clientX, y: e.clientY, t: performance.now() };
+});
+lienzo.addEventListener('pointerup', (e) => {
+  mundo.puntero.abajo = false;
+  if (inicioClic && Math.hypot(e.clientX - inicioClic.x, e.clientY - inicioClic.y) < 8 && performance.now() - inicioClic.t < 600) {
+    escenas.clic();
+  }
+  inicioClic = null;
+});
 lienzo.addEventListener('pointercancel', () => { mundo.puntero.abajo = false; });
 lienzo.addEventListener('pointerleave', () => { mundo.puntero.dentro = false; mundo.puntero.abajo = false; });
 
 // ---------- Teclado: la presentación ----------
-// Números 0–7 para saltar a una escena; flechas, espacio y AvPág/RePág
-// para los controles de presentación (clickers).
+// Para quien presenta: espacio y flechas avanzan o retroceden,
+// los números saltan a un capítulo (0 a 8).
 window.addEventListener('keydown', (e) => {
   sonido.despertar();
-  if (/^[0-7]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
+  if (/^[0-8]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
   switch (e.key) {
     case 'ArrowRight': case 'PageDown': case ' ':
-      e.preventDefault(); escenas.siguiente(); break;
+      e.preventDefault();
+      if (escenas.escribiendo) escenas.completar(); else escenas.siguiente();
+      break;
     case 'ArrowLeft': case 'PageUp':
       e.preventDefault(); escenas.anterior(); break;
     case 'h': case 'H':
@@ -107,4 +124,4 @@ function cuadro() {
 cuadro();
 
 // Acceso desde la consola del navegador: obra.mundo.resumen()
-window.obra = { mundo, escenas };
+window.obra = { mundo, escenas, sonido };

@@ -2,6 +2,8 @@
 // Prepara three.js, conecta el teclado y el mouse, y corre el bucle.
 
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { Pincel } from './pincel.js';
 import { Mundo } from './mundo.js';
 import { Escenas } from './escenas.js';
 import { Sonido } from './sonido.js';
@@ -11,11 +13,24 @@ const lienzo = document.getElementById('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
 const escena = new THREE.Scene();
 
-// Cámara en perspectiva mirando de frente: casi todo se ve plano (2D),
-// y la profundidad solo aparece cuando algo se vuelve único.
+// Luz para los símbolos 3D: un reflejo suave de estudio, una luz
+// principal cálida desde arriba a la izquierda y un contraluz rojo.
+escena.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+escena.environmentIntensity = 0.8;
+escena.add(new THREE.HemisphereLight(0xfff0e0, 0x300000, 0.6));
+const principal = new THREE.DirectionalLight(0xfff4ea, 2.4);
+principal.position.set(-40, 60, 120);
+escena.add(principal);
+const contraluz = new THREE.PointLight(0xff2030, 9000, 400, 1.6);
+contraluz.position.set(60, 40, -60);
+escena.add(contraluz);
+
+// Cámara en perspectiva mirando de frente: casi todo se ve plano,
+// y la profundidad aparece cuando nacen los símbolos 3D.
 const FOV = 40;
 const camara = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 1, 1000);
 const DISTANCIA = 50 / Math.tan(THREE.MathUtils.degToRad(FOV / 2)); // así el alto visible mide 100
@@ -25,7 +40,8 @@ const mundo = new Mundo(escena, camara, DISTANCIA);
 const sonido = new Sonido(PISTA_PROPIA);
 mundo.alNacer = (a, mx) => sonido.nota(a, mx);
 mundo.alLlegar = (a, mx) => sonido.clic(a, mx);
-const escenas = new Escenas(mundo, sonido);
+const pincel = new Pincel(document.getElementById('tinta'));
+const escenas = new Escenas(mundo, sonido, pincel);
 
 function redimensionar() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -91,10 +107,10 @@ lienzo.addEventListener('pointerleave', () => { mundo.puntero.dentro = false; mu
 
 // ---------- Teclado: la presentación ----------
 // Para quien presenta: espacio y flechas avanzan o retroceden,
-// los números saltan a un capítulo (0 a 8).
+// los números saltan a un capítulo (0 a 7).
 window.addEventListener('keydown', (e) => {
   sonido.despertar();
-  if (/^[0-8]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
+  if (/^[0-7]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
   switch (e.key) {
     case 'ArrowRight': case 'PageDown': case ' ':
       e.preventDefault();
@@ -124,4 +140,4 @@ function cuadro() {
 cuadro();
 
 // Acceso desde la consola del navegador: obra.mundo.resumen()
-window.obra = { mundo, escenas, sonido };
+window.obra = { mundo, escenas, sonido, renderer };

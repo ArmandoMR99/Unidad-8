@@ -3,20 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0c0907">
+  <meta name="theme-color" content="#070404">
   <title>Why Bother?</title>
-  <meta name="description" content="¿Para qué tomarte el trabajo? Una obra de simulación sobre crear y aprender en tiempos de inteligencia artificial.">
+  <meta name="description" content="¿Para qué tomarte el trabajo? Una reflexión en tinta roja sobre crear y aprender en tiempos de inteligencia artificial.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Yuji+Syuku&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
   </script>
 </head>
 <body>
   <h1 class="sr">Why Bother?</h1>
   <canvas id="lienzo" aria-hidden="true"></canvas>
+  <canvas id="tinta" aria-hidden="true"></canvas>
   <div id="vineta" aria-hidden="true"></div>
   <div class="barra-cine arriba" aria-hidden="true"></div>
   <div class="barra-cine abajo" aria-hidden="true"></div>
@@ -25,37 +31,32 @@
     <section id="portada">
       <p id="titulo"></p>
       <p id="subtitulo"></p>
+      <p class="sello grande">道</p>
       <p id="empezar"></p>
     </section>
 
     <section id="tarjeta" aria-live="polite">
-      <p id="tarjeta-numero"></p>
+      <p id="tarjeta-sello" class="sello"></p>
       <p id="tarjeta-titulo"></p>
     </section>
 
-    <div id="etq-humano" class="etiqueta humano">humano</div>
-    <div id="etq-ia" class="etiqueta ia">ia</div>
-
     <p id="frase" aria-live="polite"></p>
     <p id="pista"></p>
-    <button id="continuar" type="button"></button>
+    <button id="continuar" type="button">continuar</button>
 
-    <section id="final">
-      <p id="pregunta"></p>
-      <p id="respuesta"></p>
-    </section>
-
-    <section id="creditos">
-      <div id="creditos-lista"></div>
+    <section id="reflexion" aria-live="polite">
+      <p id="reflexion-linea"></p>
+      <p id="reflexion-respuesta"></p>
+      <p id="reflexion-sello" class="sello">道</p>
       <p id="reiniciar"></p>
     </section>
 
-    <button id="sonido" type="button" aria-label="activar o silenciar el sonido">sonido</button>
+    <button id="sonido" type="button" aria-label="activar o silenciar el sonido">音</button>
 
     <aside id="ayuda" aria-hidden="true">
       <p><b>clic / espacio / →</b> continuar</p>
       <p><b>←</b> capítulo anterior (reinicia)</p>
-      <p><b>0–8</b> ir a un capítulo</p>
+      <p><b>0–7</b> ir a un capítulo</p>
       <p><b>S</b> sonido · <b>H</b> esta ayuda</p>
     </aside>
   </main>

@@ -1,41 +1,44 @@
 // BANDA SONORA
-// Música original generada en vivo con Web Audio, con aire folk:
-// un bordón como de gaita, una flauta en modo dórico, arpa y bodhrán
-// en 6/8. La mezcla cambia con cada capítulo de la historia:
+// Música original generada en vivo con Web Audio, con sonido japonés:
+// una flauta tipo shakuhachi, un koto y tambores taiko, sobre un
+// bordón grave. Usa la escala miyako-bushi (re, mi bemol, sol, la,
+// si bemol), la de la música tradicional japonesa.
+// La mezcla cambia con cada capítulo de la historia:
 //
-//   lado humano   -> flauta y arpa, cálidas, a la izquierda
-//   lado IA       -> una máquina fría y exacta, a la derecha
-//   el atajo      -> la máquina crece, la flauta se apaga
-//   el rescate    -> entra el tambor, como un corazón
-//   nadie lo hace -> solo queda la máquina, y después silencio
-//   alguien sí    -> todo vuelve y crece hasta el final
+//   el camino     -> shakuhachi y koto, cálidos, a la izquierda
+//   la copia      -> aparece una máquina fría y exacta, a la derecha
+//   lo cómodo     -> la máquina crece, la flauta se apaga
+//   el esfuerzo   -> entra el taiko, como un corazón
+//   el silencio   -> solo queda la máquina, y después nada
+//   florecer      -> todo vuelve y crece
+//   la reflexión  -> calma, y un acorde final
 //
-// Si en guion.js se define PISTA_PROPIA, ese archivo suena en el
-// clímax en lugar de la música generada.
+// Si en guion.js se define PISTA_PROPIA y el archivo existe, suena
+// en el clímax en lugar de la música generada.
 
-const NEGRA_CON_PUNTILLO = 76;                 // pulsos por minuto en 6/8
+const NEGRA_CON_PUNTILLO = 64;                 // pulsos por minuto en 6/8
 const CORCHEA = 60 / (NEGRA_CON_PUNTILLO * 3); // duración de una corchea (s)
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
-// Melodía original en re dórico. Cada nota: [midi, corcheas].
+// Melodía original en miyako-bushi. Cada nota: [midi, corcheas].
 const FRASE_A = [
-  [74, 1], [76, 1], [77, 1], [81, 2], [79, 1],
-  [77, 1], [76, 1], [74, 1], [72, 3],
-  [74, 1], [77, 1], [81, 1], [84, 2], [83, 1],
-  [81, 1], [79, 1], [76, 1], [74, 3],
+  [74, 2], [75, 1], [79, 3],
+  [81, 2], [79, 1], [75, 3],
+  [74, 1], [75, 1], [79, 1], [81, 2], [82, 1],
+  [81, 3], [79, 3],
 ];
 const FRASE_B = [
-  [81, 2], [79, 1], [77, 2], [76, 1],
-  [77, 1], [79, 1], [81, 1], [76, 3],
-  [74, 2], [76, 1], [77, 1], [79, 1], [81, 1],
-  [79, 1], [77, 1], [76, 1], [74, 3],
+  [86, 3], [82, 2], [81, 1],
+  [79, 2], [81, 1], [75, 3],
+  [74, 2], [75, 1], [79, 2], [75, 1],
+  [74, 6],
 ];
 const MELODIA = [...FRASE_A, ...FRASE_A, ...FRASE_B, ...FRASE_A];
-// Acordes por compás (16 compases): Rem Do Sol Rem / Fa Do Sol Rem
-const RE_M = [50, 57, 62, 65], DO = [48, 55, 60, 64], SOL = [43, 50, 55, 59], FA = [41, 48, 53, 57];
-const A_ACORDES = [RE_M, DO, SOL, RE_M];
-const ACORDES = [...A_ACORDES, ...A_ACORDES, FA, DO, SOL, RE_M, ...A_ACORDES];
+// Arpegios del koto por compás (16 compases)
+const RE = [50, 57, 62, 69], MIB = [51, 58, 63, 67], SOL = [43, 50, 55, 62], SIB = [46, 53, 58, 62];
+const A_ACORDES = [RE, MIB, SOL, RE];
+const ACORDES = [...A_ACORDES, ...A_ACORDES, SOL, MIB, SIB, RE, ...A_ACORDES];
 
 // Eventos de la melodía por corchea
 const MELODIA_POR_PASO = new Map();
@@ -48,14 +51,13 @@ const PASOS_CICLO = 16 * 6;
 // Mezcla de cada capítulo (0 a 1 por instrumento)
 const MEZCLAS = {
   0: { bordon: 0.35, flauta: 0, arpa: 0, tambor: 0, maquina: 0, oscuro: 0.4 },
-  1: { bordon: 0.6, flauta: 0.8, arpa: 0.5, tambor: 0, maquina: 0, oscuro: 0.7 },
+  1: { bordon: 0.55, flauta: 0.85, arpa: 0.5, tambor: 0, maquina: 0, oscuro: 0.7 },
   2: { bordon: 0.5, flauta: 0.6, arpa: 0.3, tambor: 0, maquina: 0.55, oscuro: 0.6 },
-  3: { bordon: 0.35, flauta: 0.25, arpa: 0.15, tambor: 0, maquina: 0.9, oscuro: 0.35 },
-  4: { bordon: 0.55, flauta: 0.45, arpa: 0.4, tambor: 0.7, maquina: 0.6, oscuro: 0.6 },
+  3: { bordon: 0.35, flauta: 0.2, arpa: 0.15, tambor: 0, maquina: 0.9, oscuro: 0.35 },
+  4: { bordon: 0.55, flauta: 0.5, arpa: 0.45, tambor: 0.8, maquina: 0.6, oscuro: 0.6 },
   5: { bordon: 0.1, flauta: 0, arpa: 0, tambor: 0, maquina: 0.5, oscuro: 0.2 },
-  6: { bordon: 0.8, flauta: 1, arpa: 0.8, tambor: 0.9, maquina: 0, oscuro: 1 },
-  7: { bordon: 0.9, flauta: 1, arpa: 1, tambor: 0.6, maquina: 0, oscuro: 1 },
-  8: { bordon: 0.4, flauta: 0.5, arpa: 0.6, tambor: 0, maquina: 0, oscuro: 0.8 },
+  6: { bordon: 0.8, flauta: 1, arpa: 0.85, tambor: 1, maquina: 0, oscuro: 1 },
+  7: { bordon: 0.75, flauta: 0.8, arpa: 0.9, tambor: 0.25, maquina: 0, oscuro: 0.9 },
 };
 
 export class Sonido {
@@ -128,7 +130,7 @@ export class Sonido {
     g.gain.value = 0.05;
     [38, 45, 50].forEach((n, i) => {
       const o = ctx.createOscillator();
-      o.type = 'sawtooth';
+      o.type = i === 2 ? 'triangle' : 'sawtooth';
       o.frequency.value = midi(n);
       o.detune.value = (i - 1) * 4;
       const lfo = ctx.createOscillator();
@@ -223,8 +225,8 @@ export class Sonido {
     const f = midi(n);
     const o = ctx.createOscillator();
     o.type = 'sine';
-    o.frequency.setValueAtTime(f * 0.985, t);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.06); // pequeño deslizamiento al entrar
+    o.frequency.setValueAtTime(f * 0.94, t);
+    o.frequency.exponentialRampToValueAtTime(f, t + 0.14); // entra desde abajo, como el shakuhachi
     const o2 = ctx.createOscillator();
     o2.type = 'triangle';
     o2.frequency.value = f * 2;
@@ -235,7 +237,7 @@ export class Sonido {
     lfo.frequency.value = 5.3;
     const lg = ctx.createGain();
     lg.gain.setValueAtTime(0, t);
-    lg.gain.linearRampToValueAtTime(f * 0.007, t + Math.min(dur, 0.5));
+    lg.gain.linearRampToValueAtTime(f * 0.012, t + Math.min(dur, 0.7));
     lfo.connect(lg).connect(o.frequency);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0, t);
@@ -248,10 +250,11 @@ export class Sonido {
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
     bp.frequency.value = f * 1.5;
-    bp.Q.value = 2;
+    bp.Q.value = 1.2;
     const sg = ctx.createGain();
-    sg.gain.setValueAtTime(0.05, t);
-    sg.gain.exponentialRampToValueAtTime(0.002, t + 0.12);
+    sg.gain.setValueAtTime(0.09, t);
+    sg.gain.exponentialRampToValueAtTime(0.012, t + 0.25);
+    sg.gain.setValueAtTime(0.012, t + dur);
     s.connect(bp).connect(sg).connect(env);
     const pan = ctx.createStereoPanner();
     pan.pan.value = -0.25;
@@ -264,30 +267,31 @@ export class Sonido {
   arpa(n, t, vol) {
     const ctx = this.ctx;
     const o = ctx.createOscillator();
-    o.type = 'triangle';
-    o.frequency.value = midi(n);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(midi(n + 0.35), t);
+    o.frequency.exponentialRampToValueAtTime(midi(n), t + 0.05); // la cuerda del koto se asienta
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.setValueAtTime(3200, t);
-    lp.frequency.exponentialRampToValueAtTime(600, t + 0.6);
+    lp.frequency.setValueAtTime(2600, t);
+    lp.frequency.exponentialRampToValueAtTime(420, t + 0.5);
     const env = ctx.createGain();
     env.gain.setValueAtTime(0, t);
-    env.gain.linearRampToValueAtTime(vol, t + 0.004);
-    env.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    env.gain.linearRampToValueAtTime(vol * 0.8, t + 0.003);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
     o.connect(lp).connect(env).connect(this.buses.arpa);
     o.start(t);
-    o.stop(t + 1.5);
+    o.stop(t + 1.9);
   }
 
   tambor(t, fuerza) {
     const ctx = this.ctx;
     const o = ctx.createOscillator();
     o.type = 'sine';
-    o.frequency.setValueAtTime(120, t);
-    o.frequency.exponentialRampToValueAtTime(48, t + 0.18);
+    o.frequency.setValueAtTime(95, t);
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.3);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.32 * fuerza, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    g.gain.setValueAtTime(0.45 * fuerza, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
     o.connect(g).connect(this.buses.tambor);
     const s = ctx.createBufferSource();
     s.buffer = this.ruido;
@@ -298,7 +302,7 @@ export class Sonido {
     sg.gain.setValueAtTime(0.09 * fuerza, t);
     sg.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
     s.connect(lp).connect(sg).connect(this.buses.tambor);
-    o.start(t); o.stop(t + 0.4);
+    o.start(t); o.stop(t + 0.65);
     s.start(t); s.stop(t + 0.1);
   }
 
@@ -327,7 +331,7 @@ export class Sonido {
     const ctx = this.ctx;
     const hsl = {};
     agente.color.getHSL(hsl);
-    const escala = [62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81];
+    const escala = [62, 63, 67, 69, 70, 74, 75, 79, 81, 82, 86];
     const n = escala[Math.floor(hsl.h * escala.length) % escala.length];
     const t = ctx.currentTime;
     const o = ctx.createOscillator();
@@ -369,7 +373,7 @@ export class Sonido {
   acorde() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    [50, 57, 62, 65, 69].forEach((n, i) => {
+    [38, 50, 57, 62, 67, 69].forEach((n, i) => {
       const o = this.ctx.createOscillator();
       o.type = 'sine';
       o.frequency.value = midi(n);

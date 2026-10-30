@@ -6,58 +6,58 @@ export const SUBTITULO = '¿para qué tomarte el trabajo?';
 export const EMPEZAR = 'haz clic para empezar';
 export const CONTINUAR = 'clic para continuar';
 
-// Capítulos. Cada uno tiene un título (aparece como en el cine)
-// y las frases que se escriben letra por letra.
+// Capítulos. Cada uno abre con un sello rojo (hanko) con un kanji,
+// un trazo de pincel y su título; luego las frases se escriben solas.
+//   道 camino · 写 copiar · 楽 lo cómodo · 努 esforzarse · 静 quietud · 咲 florecer
 export const CAPITULOS = {
   1: {
-    numero: 'I',
-    titulo: 'los que deciden',
-    frases: ['aquí nadie les dice qué figura hacer.', 'cada paso que dan queda en el suelo.'],
+    kanji: '道',
+    titulo: 'el camino',
+    frases: ['al principio nadie sabe hacia dónde ir.', 'así que cada uno inventa su propio camino.'],
   },
   2: {
-    numero: 'II',
-    titulo: 'los que copian',
-    frases: ['del otro lado alguien mira y copia.', 'lo deja en orden. pero no deja huella.'],
+    kanji: '写',
+    titulo: 'la copia',
+    frases: ['del otro lado, algo aprendió a imitarlos.', 'rápido. perfecto. igual cada vez.'],
   },
   3: {
-    numero: 'III',
-    titulo: 'el atajo',
-    frases: ['cruzar es más fácil.', 'siguen teniendo su color, pero ya no deciden.'],
+    kanji: '楽',
+    titulo: 'lo cómodo',
+    frases: ['y apareció la pregunta:', '¿para qué esforzarse, si alguien más puede hacerlo?', 'uno a uno, dejaron de decidir.'],
   },
   4: {
-    numero: 'IV',
-    titulo: 'tomarse el trabajo',
+    kanji: '努',
+    titulo: 'el esfuerzo',
     frases: ['mantén presionado sobre ellos y tráelos de vuelta.'],
-    alRescatar: 'cuesta. pero los que vuelven ya no son los mismos.',
+    alRescatar: 'cuesta. pero lo que vuelve ya no es lo mismo.',
   },
   5: {
-    numero: 'V',
-    titulo: 'si nadie lo hace',
-    frases: ['si nadie hace nada, todo queda en orden.', 'y quieto.'],
+    kanji: '静',
+    titulo: 'el silencio',
+    frases: ['si nadie lo hace, todo queda en orden.', 'y nada vuelve a moverse.'],
   },
   6: {
-    numero: 'VI',
-    titulo: 'si alguien lo hace',
+    kanji: '咲',
+    titulo: 'florecer',
     frases: ['pasa sobre ellos.'],
-    alTerminar: 'nadie les entregó el camino. lo hicieron sus pasos.',
+    alTerminar: 'la IA no hizo esto sola. yo tampoco.',
   },
 };
 
-// Final
-export const NOMBRE = 'Juan Franco';
-export const PREGUNTA = '¿Debería tomarme el trabajo?';
-export const RESPUESTA = `Sí, deberías, ${NOMBRE}.`;
-
-export const CREDITOS = [
-  'una obra de Armando',
-  'Simulación · Unidad 8 · 2026-20',
-  'música original generada en el navegador',
-  'código escrito con Claude a partir de mi diseño',
+// La reflexión final. Cada línea aparece sola, en el centro.
+export const REFLEXION = [
+  'empecé este curso para aprobar.',
+  'y en el camino, algo se me quedó.',
+  'la IA puede escribir el código.',
+  'pero no sabe por qué lo hago.',
+  'lo que juego, lo que veo, lo que entreno,',
+  'eso no se delega.',
 ];
+export const PREGUNTA_FINAL = '¿para qué tomarse el trabajo?';
+export const RESPUESTA_FINAL = 'para que el camino sea mío.';
 export const REINICIAR = 'clic para volver a empezar';
 
-// Si quieres usar una canción propia en el clímax (capítulos VI y
-// final), pon el archivo en la carpeta audio/ de tu computador y
-// escribe aquí su ruta, por ejemplo 'audio/cancion.mp3'.
-// No subas canciones con derechos de autor al repositorio público.
+// Si quieres usar una canción propia en el clímax (capítulo 咲 y la
+// reflexión), pon el archivo en la carpeta audio/ de tu computador.
+// Esa carpeta no se sube al repositorio.
 export const PISTA_PROPIA = 'audio/cancion.mp3';

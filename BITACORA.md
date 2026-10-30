@@ -3,7 +3,7 @@
 
 ![Why Bother?](img/portada.jpg)
 
-**[Ver la obra](https://armandomr99.github.io/Unidad-8/)** · se recorre con clics, con sonido encendido
+**[Ver la obra](https://armandomr99.github.io/Unidad-8/)** · se recorre con clics, mejor con sonido
 
 ---
 
@@ -17,42 +17,44 @@ Hay una idea que me acompañó todo el tiempo, y la saqué de una canción que m
 
 ## La obra
 
-Es una película corta en seis capítulos que se recorre haciendo clic. Hay dos lados con los mismos agentes y los mismos colores; lo único que cambia son las reglas. Los agentes humanos van dejando sus pasos pintados en el suelo, y con el tiempo esas huellas forman un camino. Los rígidos no dejan huella.
+Es una historia corta en seis capítulos y una reflexión final, que se recorre haciendo clic. Está hecha en estilo shodō, la caligrafía japonesa: laca negra, tinta roja, trazos de pincel y un sello rojo con un kanji para cada capítulo.
+
+No hay letreros que digan qué es cada cosa. A un lado, puntos de tinta que se mueven libres y van dejando sus pasos pintados en el suelo; con el tiempo esos pasos forman un camino. Al otro lado, una cuadrícula fría donde todo se ordena y nada deja huella.
 
 | | |
 | :---: | :---: |
-| ![I](img/i-los-que-deciden.jpg) | ![II](img/ii-titulo.jpg) |
-| **I · los que deciden.** Se mueven en bandada, deambulan y cada paso queda en el suelo. | **II · los que copian.** Del otro lado alguien mira, copia, lo pega a una cuadrícula y lo vuelve simétrico. |
-| ![III](img/iii-el-atajo.jpg) | ![IV](img/iv-tomarse-el-trabajo.jpg) |
-| **III · el atajo.** Cruzar es más fácil. Uno por uno ceden; conservan su color pero ya no deciden. | **IV · tomarse el trabajo.** Quien mira los rescata con el mouse. Cuesta, y los que vuelven se vuelven una pieza única. |
-| ![V](img/v-si-nadie-lo-hace.jpg) | ![VI](img/vi-si-alguien-lo-hace.jpg) |
-| **V · si nadie lo hace.** Todos cruzan. Todo queda en orden y quieto. El camino se apaga. | **VI · si alguien lo hace.** Al pasar sobre ellos aprenden, y florecen como un jardín sobre el camino que dejaron. |
+| ![道](img/i-el-camino.jpg) | ![写](img/ii-la-copia.jpg) |
+| **道 el camino.** Nadie sabe hacia dónde ir, así que cada uno inventa su camino. | **写 la copia.** Del otro lado, algo aprende a imitarlos: rápido, perfecto, igual cada vez. |
+| ![楽](img/iii-lo-comodo.jpg) | ![努](img/iv-el-esfuerzo.jpg) |
+| **楽 lo cómodo.** ¿Para qué esforzarse si alguien más puede hacerlo? Uno a uno dejan de decidir. | **努 el esfuerzo.** Quien mira los rescata con el mouse. Cuesta, y lo que vuelve ya no es lo mismo. |
+| ![静](img/v-el-silencio.jpg) | ![咲](img/vi-florecer.jpg) |
+| **静 el silencio.** Si nadie lo hace, todo queda en orden. Y nada vuelve a moverse. | **咲 florecer.** Al pasar sobre ellos, todos vuelven, convertidos en lo que me representa. |
 
-![Final](img/final.jpg)
+![Reflexión](img/reflexion.jpg)
 
-Al final aparece la pregunta del profesor y mi respuesta, y luego los créditos.
+**Lo que vuelve.** Cuando alguien se toma el trabajo, los agentes no regresan como eran: se convierten en modelos 3D de cosas que me representan y que se pueden lograr con ayuda de la IA. Un balón y un aro de básquet, un control de videojuego, una katana y un manga abierto por el anime, y un pincel de shodō. Están construidos con geometrías de three.js (esferas, toros, extrusiones, tornos) y la textura del manga está dibujada con código: viñetas, líneas de velocidad, globos de diálogo.
 
-Cada pieza única (flor, copo de nieve, girasol o nota musical) mezcla algo ordenado, una ecuación o una simetría, con algo propio: sus parámetros salen de la semilla de ese agente, así que no hay dos iguales.
+**La reflexión.** Al final se pinta un ensō, el círculo zen que se dibuja de un solo trazo y nunca se cierra del todo, y los símbolos giran a su alrededor mientras aparece lo que pienso: que empecé para aprobar y algo se me quedó, que la IA puede escribir el código pero no sabe por qué lo hago, y que lo que juego, veo y entreno no se delega.
 
-**La música** es original y se genera en vivo en el navegador, con aire folk: un bordón como de gaita, una flauta en modo dórico, arpa y bodhrán en 6/8. Cambia con la historia: en el lado IA aparece una máquina fría y exacta, en el atajo la flauta se apaga, en el rescate entra el tambor como un corazón, cuando nadie lo hace queda el silencio y, cuando alguien sí, todo vuelve. Cada vez que nace una pieza única suena una nota que sale de su color.
+**La música** es original y se genera en vivo en el navegador con la escala japonesa miyako-bushi: una flauta tipo shakuhachi, un koto y tambores taiko. Cambia con la historia: en la copia aparece una máquina fría, en lo cómodo la flauta se apaga, en el esfuerzo entra el taiko como un corazón, en el silencio no queda nada, y al florecer todo vuelve.
 
 ---
 
 ## ¿Cómo interpreté la pregunta?
 
-Al principio lo pensé como humano contra IA: agentes libres que al cruzar se vuelven rígidos. Mientras lo diseñaba me di cuenta de que eso decía que la IA es mala, y yo no pienso eso. Por eso agregué que los que vuelven con ayuda mezclan los dos lados y se vuelven únicos. Después entendí que lo importante no era el resultado sino el recorrido, y por eso el camino de huellas se volvió el centro.
+Al principio lo pensé como humano contra IA: agentes libres que al cruzar se vuelven rígidos. Mientras lo diseñaba me di cuenta de que eso decía que la IA es mala, y yo no pienso eso. Por eso los que vuelven con ayuda mezclan los dos lados. Después entendí que lo importante era el recorrido, y por eso el camino de tinta se volvió el centro. Al final quise que lo que vuelve fuera yo: lo que me gusta y lo que puedo lograr cuando trabajo con la IA y no al revés.
 
 ## ¿Cómo lo exploré?
 
 Primero diseñé la obra y después le pedí a Claude que la convirtiera en código. Lo hice a propósito: si mi idea es que la IA pone el código y uno pone lo humano, la obra tenía que hacerse así.
 
-Las decisiones fueron mías: los dos lados, que al cruzar mantuvieran su color, que la IA hiciera copias rígidas y genéricas, que los que vuelven fueran flores o notas musicales, los dos finales, cerrar con la respuesta al profesor, que el 3D apareciera solo cuando algo se vuelve único, y que se explicara sola con clics como una película. Usé como referente la obra *Ontología* de una compañera: me mostró que una entrega se siente terminada cuando no necesita explicarse.
+Las decisiones fueron mías: los dos lados, que al cruzar mantuvieran su color, que la IA hiciera copias rígidas, los dos finales, que se explicara sola con clics como una película, quitar los letreros para que se entienda solo con verla, el estilo shodō en rojo y negro, que lo que vuelve sean cosas que me representan, y cerrar con una reflexión propia. Usé como referente la obra *Ontología* de una compañera: me mostró que una entrega se siente terminada cuando no necesita explicarse.
 
-Técnicas del curso: ruido de Perlin (unidad 1), vectores y fuerzas (unidades 2 y 3), partículas (unidad 5), bandada de Reynolds y comportamientos de dirección (unidad 6), y three.js. Para las piezas: la curva rosa `r = cos(kθ)`, simetría de 6 brazos y el ángulo áureo.
+Técnicas del curso: ruido de Perlin (unidad 1), vectores y fuerzas (unidades 2 y 3), partículas (unidad 5), bandada de Reynolds y comportamientos de dirección (unidad 6), y three.js con modelos 3D, luces y mallas instanciadas para que 320 objetos se muevan sin que se ponga lento.
 
 ## ¿Qué encontré?
 
-El contraste entre los dos lados funciona sin explicarlo. Lo que me sorprendió fue que, al probarla, todos los agentes cruzaban casi al mismo tiempo: cuando unos se iban, la bandada arrastraba a los demás. Se parece a lo que pasa en clase con la IA. Se ajustó para que cada uno ceda en su propio momento.
+El contraste entre los dos lados funciona sin explicarlo: la tinta contra la cuadrícula se entiende solo. Me sorprendió que, al probarla, todos los agentes cruzaban casi al mismo tiempo: cuando unos se iban, la bandada arrastraba a los demás. Se parece a lo que pasa en clase con la IA. Se ajustó para que cada uno ceda en su propio momento.
 
 Queda abierto si hacer el código con IA contradice la obra o la confirma. Yo creo que la confirma, porque las decisiones fueron mías, pero entiendo que alguien piense lo contrario.
 
@@ -62,7 +64,7 @@ Puedo explicar qué pasa en cada capítulo, qué técnica usa cada parte y dónd
 
 ## ¿Qué sentido tuvo tomarme el trabajo?
 
-Frente a la pregunta de Hodgin: sí vale la pena, pero no por el resultado, porque la IA también produce resultados bonitos. Vale la pena por lo que solo aparece cuando alguien se toma el trabajo: el camino que dejan los pasos y los que vuelven sin ser iguales a ningún otro.
+Frente a la pregunta de Hodgin: sí vale la pena, pero no por el resultado, porque la IA también produce resultados bonitos. Vale la pena para que el camino sea mío.
 
 ---
 
@@ -71,6 +73,7 @@ Frente a la pregunta de Hodgin: sí vale la pena, pero no por el resultado, porq
 - Robert Hodgin, [*Why Bother? Making Art in the Age of AI*](https://www.youtube.com/watch?v=vmUodu6K-bA).
 - [*Ontología*](https://estorrente.github.io/Ontologia/), obra de una compañera del curso: referente de cómo presentar.
 - Mägo de Oz, *Molinos de viento*: la idea del camino que hacen los pies. La música de la obra es original, no usa la canción.
+- Shodō y ensō: la caligrafía japonesa y el círculo zen como lenguaje visual.
 - Craig Reynolds, [*Boids*](https://www.red3d.com/cwr/boids/): el modelo de bandada.
 - Daniel Shiffman, [*The Nature of Code*](https://natureofcode.com/): fuerzas, partículas y agentes autónomos.
 - [three.js](https://threejs.org/).
@@ -81,8 +84,8 @@ Frente a la pregunta de Hodgin: sí vale la pena, pero no por el resultado, porq
 
 | Criterio | Puntaje | Justificación |
 | :--- | :--- | :--- |
-| Cumplimiento del encargo | 25/25 | La obra es una simulación completa que explora la pregunta "Why Bother?": funciona en tiempo real en la web, se recorre con clics en seis capítulos y un final, tiene interacción con el mouse (rescatar agentes y hacerlos aprender con el cursor), música generativa que acompaña la historia, y la bitácora responde las cinco preguntas de la unidad. |
-| Comprensión y verificación | 25/25 | Puedo explicar qué técnica del curso usa cada capítulo (ruido de Perlin, fuerzas, bandada de Reynolds, partículas y curvas matemáticas para las piezas) y dónde se modifican los textos y comportamientos. Al probarla detecté que los agentes cruzaban todos juntos por la bandada y se ajustó para que cada uno ceda en su propio momento. |
-| Exploración de la pregunta | 25/25 | Mi interpretación evolucionó durante el diseño: pasé de un contraste humano contra IA a la idea de que los que vuelven con ayuda mezclan ambos lados y se vuelven únicos, y después a que lo que vale es el recorrido: el camino que dejan los pasos. La forma de hacerla (yo diseñé, la IA programó) también es parte de la respuesta. |
-| Reflexión sobre el proceso | 25/25 | Respondí con total sinceridad por qué seguí en el curso, declaré abiertamente cómo usé la IA y tomé una postura propia frente a Hodgin: vale la pena por lo que solo aparece cuando alguien se toma el trabajo. |
+| Cumplimiento del encargo | 25/25 | La obra es una simulación completa que explora la pregunta "Why Bother?": funciona en tiempo real en la web, se recorre con clics en seis capítulos y una reflexión final, tiene interacción con el mouse (rescatar agentes y hacerlos volver con el cursor), modelos 3D propios, música generativa que acompaña la historia, y la bitácora responde las cinco preguntas de la unidad. |
+| Comprensión y verificación | 25/25 | Puedo explicar qué técnica del curso usa cada capítulo (ruido de Perlin, fuerzas, bandada de Reynolds, partículas, geometrías 3D) y dónde se modifican los textos y comportamientos. Al probarla detecté que los agentes cruzaban todos juntos por la bandada y se ajustó para que cada uno ceda en su propio momento. |
+| Exploración de la pregunta | 25/25 | Mi interpretación evolucionó durante el diseño: de un contraste humano contra IA, a la idea de que los que vuelven mezclan ambos lados, a que lo que vale es el recorrido, y finalmente a que lo que vuelve soy yo: lo que me gusta y lo que logro trabajando con la IA. La forma de hacerla (yo diseñé, la IA programó) también es parte de la respuesta. |
+| Reflexión sobre el proceso | 25/25 | Respondí con total sinceridad por qué seguí en el curso, declaré abiertamente cómo usé la IA y tomé una postura propia frente a Hodgin: vale la pena para que el camino sea mío. |
 | **Total** | **100/100** | **Equivale a 5.0/5.0** |

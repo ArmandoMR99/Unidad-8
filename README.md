@@ -2,11 +2,11 @@
 
 *¿para qué tomarte el trabajo?*
 
-![Why Bother?](img/vi-si-alguien-lo-hace.jpg)
+![Why Bother?](img/reflexion.jpg)
 
 **[Ver la obra](https://armandomr99.github.io/Unidad-8/)** · **[Bitácora](BITACORA.md)**
 
-Una película corta en seis capítulos sobre crear y aprender en tiempos de inteligencia artificial. Dos lados, los mismos agentes, distintas reglas. Lo fácil atrae; traerlos de vuelta cuesta. Y el camino no estaba hecho: lo hicieron sus pasos.
+Una reflexión en tinta roja sobre crear y aprender en tiempos de inteligencia artificial. Seis capítulos en estilo shodō: el camino, la copia, lo cómodo, el esfuerzo, el silencio, florecer. Lo fácil atrae; traerlos de vuelta cuesta. Y lo que vuelve ya no es lo mismo.
 
 Se recorre haciendo clic. Mejor con sonido.
 

@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { Mundo } from './mundo.js';
 import { Escenas } from './escenas.js';
+import { Sonido } from './sonido.js';
 
 const lienzo = document.getElementById('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true, alpha: true });
@@ -20,7 +21,10 @@ const DISTANCIA = 50 / Math.tan(THREE.MathUtils.degToRad(FOV / 2)); // así el a
 camara.position.set(0, 0, DISTANCIA);
 
 const mundo = new Mundo(escena, camara, DISTANCIA);
-const escenas = new Escenas(mundo);
+const sonido = new Sonido();
+mundo.alNacer = (a, mx) => sonido.nota(a, mx);
+mundo.alLlegar = (a, mx) => sonido.clic(a, mx);
+const escenas = new Escenas(mundo, sonido);
 
 function redimensionar() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -48,6 +52,23 @@ function moverPuntero(e) {
   }
 }
 lienzo.addEventListener('pointermove', moverPuntero);
+
+// Cursor propio
+const cursor = document.getElementById('cursor');
+window.addEventListener('pointermove', (e) => {
+  cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+  cursor.classList.add('visible');
+});
+document.addEventListener('pointerleave', () => cursor.classList.remove('visible'));
+
+// Sonido: el navegador solo lo permite después de una interacción.
+const botonSonido = document.getElementById('sonido');
+function alternarSonido() {
+  if (!sonido.ctx) { sonido.despertar(); return; } // el primer toque solo lo enciende
+  botonSonido.classList.toggle('apagado', !sonido.alternar());
+}
+botonSonido.addEventListener('click', (e) => { e.stopPropagation(); alternarSonido(); });
+window.addEventListener('pointerdown', () => sonido.despertar());
 lienzo.addEventListener('pointerdown', (e) => { moverPuntero(e); mundo.puntero.abajo = true; lienzo.setPointerCapture(e.pointerId); });
 lienzo.addEventListener('pointerup', () => { mundo.puntero.abajo = false; });
 lienzo.addEventListener('pointercancel', () => { mundo.puntero.abajo = false; });
@@ -57,6 +78,7 @@ lienzo.addEventListener('pointerleave', () => { mundo.puntero.dentro = false; mu
 // Números 0–7 para saltar a una escena; flechas, espacio y AvPág/RePág
 // para los controles de presentación (clickers).
 window.addEventListener('keydown', (e) => {
+  sonido.despertar();
   if (/^[0-7]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
   switch (e.key) {
     case 'ArrowRight': case 'PageDown': case ' ':
@@ -64,7 +86,9 @@ window.addEventListener('keydown', (e) => {
     case 'ArrowLeft': case 'PageUp':
       e.preventDefault(); escenas.anterior(); break;
     case 'h': case 'H':
-      document.body.classList.toggle('sin-textos'); break;
+      document.body.classList.toggle('con-ayuda'); break;
+    case 's': case 'S':
+      alternarSonido(); break;
     case 'r': case 'R':
       escenas.ir(0, true); break;
   }

@@ -115,6 +115,9 @@ export class Mundo {
     this.casillas = new Map();
     this.piezasMuriendo = [];
     this.puntero = { x: 0, y: 0, abajo: false, dentro: false };
+    // Avisos para el sonido: cuando nace una pieza y cuando un rígido llega a su casilla.
+    this.alNacer = null;
+    this.alLlegar = null;
 
     this.crearGraficos();
     this.reiniciar();
@@ -211,7 +214,7 @@ export class Mundo {
     this.rescate = c.rescate;
     this.cursorAprende = c.cursorAprende;
     this.fronteraActiva = c.frontera;
-    this.fronteraMeta = c.frontera ? (c.n === 0 ? 0.14 : 0.06) : 0;
+    this.fronteraMeta = c.frontera ? (c.n === 0 ? 0.03 : 0.06) : 0;
     this.modo = c.modo;
     this.camMeta.set(0, 0, this.distancia);
 
@@ -230,6 +233,7 @@ export class Mundo {
   // ---------- Transiciones de estado ----------
   volverRigido(a) {
     a.estado = RIGIDO;
+    a.enCasilla = false;
     a.agarrado = false;
     a.rastro.length = 0;
     const copia = this.copias[a.id];
@@ -253,6 +257,7 @@ export class Mundo {
     a.vx *= 0.3; a.vy *= 0.3;
     a.nace = t;
     a.pieza = crearPieza(a.color, a.semilla);
+    if (this.alNacer) this.alNacer(a, this.mx);
     a.pieza.position.set(a.x, a.y, 0);
     a.pieza.scale.setScalar(0.001);
     this.escena.add(a.pieza);
@@ -403,7 +408,9 @@ export class Mundo {
         a.y += ((this.puntero.y - a.y) * 0.07 * e + (a.ty - a.y) * 0.012) * k + (Math.random() - 0.5) * temblor;
         if (a.x < -2.5) this.volverHibrido(a, t);
       } else {
-        moverManhattan(a, a.tx, a.ty, 0.7 * k);
+        const yaEstaba = a.enCasilla;
+        a.enCasilla = moverManhattan(a, a.tx, a.ty, 0.7 * k);
+        if (a.enCasilla && !yaEstaba && this.alLlegar) this.alLlegar(a, this.mx);
       }
     }
 

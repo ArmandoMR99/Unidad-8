@@ -3,54 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Why Bother? · ¿Para qué tomarte el trabajo?</title>
-  <meta name="description" content="Obra de simulación computacional para la Unidad 8 del curso de Simulación.">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Why Bother?</title>
+  <meta name="description" content="¿Para qué tomarte el trabajo? Una obra de simulación sobre crear y aprender en tiempos de inteligencia artificial.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
   </script>
 </head>
 <body>
-  <canvas id="lienzo"></canvas>
+  <h1 class="sr">Why Bother?</h1>
+  <canvas id="lienzo" aria-hidden="true"></canvas>
+  <div id="vineta" aria-hidden="true"></div>
 
-  <div id="capa">
-    <!-- Escena 0: portada -->
+  <main id="capa">
     <section id="portada">
-      <h1>Why Bother?</h1>
-      <p class="sub">¿Para qué tomarte el trabajo?</p>
+      <p id="titulo"></p>
+      <p id="subtitulo"></p>
+      <p id="empezar">espacio</p>
     </section>
 
-    <!-- Etiquetas de los dos lados -->
-    <div id="etq-humano" class="etiqueta humano">lado humano</div>
-    <div id="etq-ia" class="etiqueta ia">lado IA</div>
+    <div id="etq-humano" class="etiqueta humano">humano</div>
+    <div id="etq-ia" class="etiqueta ia">ia</div>
 
-    <!-- Leyenda de cada escena (los textos están en js/guion.js) -->
-    <aside id="leyenda">
-      <h2 id="leyenda-titulo"></h2>
-      <p id="leyenda-texto"></p>
-    </aside>
+    <p id="frase" aria-live="polite"></p>
 
-    <!-- Escena 7: la pregunta y la respuesta -->
     <section id="final">
       <p id="pregunta"></p>
       <p id="respuesta"></p>
     </section>
 
-    <!-- Escena 4: medidor de esfuerzo -->
-    <div id="esfuerzo">
-      <span>esfuerzo</span>
-      <div class="barra"><i id="esfuerzo-relleno"></i></div>
-    </div>
+    <p id="firma"></p>
+    <button id="sonido" type="button" aria-label="activar o silenciar el sonido">sonido</button>
 
-    <!-- Navegación -->
-    <nav id="hud">
+    <aside id="ayuda" aria-hidden="true">
+      <p><b>0–7</b> escenas</p>
+      <p><b>espacio / →</b> siguiente</p>
+      <p><b>←</b> anterior (reinicia)</p>
+      <p><b>4</b> clic sostenido y arrastrar</p>
+      <p><b>6</b> otra vez: recorrer todos</p>
+      <p><b>S</b> sonido · <b>R</b> reiniciar · <b>H</b> ayuda</p>
       <p id="contador"></p>
-      <p class="ayuda" id="ayuda">usa las teclas del 0 al 7</p>
-    </nav>
-  </div>
+    </aside>
+  </main>
+
+  <div id="cursor" aria-hidden="true"><i></i></div>
 
   <script type="module" src="js/main.js"></script>
 </body>

@@ -1,45 +1,21 @@
 # Why Bother?
 
-Obra para la Unidad 8 de Simulación (2026-20). La pregunta era *¿para qué tomarse el trabajo?* y esta es mi forma de responderla.
+*¿para qué tomarte el trabajo?*
 
-Hay dos lados. En el de la izquierda los agentes se mueven libres, como en bandada, y cada uno hace lo suyo. En el de la derecha (el lado IA) se mueven rígidos y solo copian lo que ven del otro lado. Con el tiempo los agentes se van pasando a la derecha porque es más fácil, y al cruzar siguen teniendo su color pero dejan de decidir. Se pueden traer de vuelta con el mouse, aunque cuesta, y los que vuelven se convierten en una pieza única: una flor, un copo de nieve, un girasol o una nota musical. Ninguna sale igual a otra.
+![Why Bother?](img/escena-6.jpg)
+
+**[Ver la obra](https://armandomr99.github.io/Unidad-8/)** · **[Bitácora](BITACORA.md)**
+
+Una obra de simulación sobre crear y aprender en tiempos de inteligencia artificial. Dos lados, los mismos agentes, distintas reglas. Lo fácil atrae; traerlos de vuelta cuesta. Los que vuelven ya no son los mismos.
+
+Unidad 8 · Simulación 2026-20
 
 ## Cómo verla
 
-Se presenta con el teclado:
+Se recorre con el teclado, de la escena `0` a la `7` (también con espacio y las flechas). En la escena `4` se hace clic sostenido sobre el lado derecho y se arrastra hacia la izquierda. En la `6` se pasa el cursor por encima. `H` muestra la ayuda y `S` activa o silencia el sonido.
 
-- `0` portada
-- `1` lado humano
-- `2` lado IA
-- `3` el atajo (los agentes empiezan a cruzar)
-- `4` rescatarlos: clic sostenido sobre el lado IA y arrastrar a la izquierda
-- `5` final si nadie hace nada
-- `6` final si alguien sí lo hace: pasar el cursor por encima (si se oprime `6` otra vez los recorre todos solo)
-- `7` la pregunta y la respuesta
-
-Las flechas también sirven para avanzar y retroceder. `H` esconde los textos y `R` reinicia. Si se devuelve a una escena anterior, todo arranca de cero.
-
-Para probarla en el computador hay que abrir una terminal en la carpeta, correr `python -m http.server` y entrar a `http://localhost:8000`. Con doble clic en el `index.html` no funciona.
-
-## Qué usé del curso
-
-- Ruido de Perlin para que los agentes humanos deambulen (unidad 1).
-- Vectores y fuerzas: el atajo es una fuerza que los atrae y el rescate es otra fuerza contra su resistencia (unidades 2 y 3).
-- Partículas para las estelas y las piezas (unidad 5).
-- Bandada de Reynolds y comportamientos de dirección (unidad 6). Los agentes rígidos no usan fuerzas: van en línea recta a su casilla.
-- Para las piezas: la curva rosa `r = cos(kθ)` para las flores, simetría de 6 brazos para los copos y el ángulo áureo para los girasoles.
-- three.js. Casi todo se ve plano y el 3D solo aparece cuando un agente se vuelve único.
-
-## Archivos
-
-- `js/guion.js` todos los textos que salen en pantalla
-- `js/escenas.js` qué pasa en cada tecla
-- `js/mundo.js` los agentes, las copias del lado IA y el dibujo
-- `js/comportamientos.js` las fuerzas y la bandada
-- `js/piezas.js` las piezas únicas
-- `js/ruido.js` ruido de Perlin
-- `BITACORA.md` el proceso
+Para abrirla en el computador: `python -m http.server` en la carpeta y entrar a `http://localhost:8000`.
 
 ## Créditos
 
-La idea, el diseño y las decisiones son míos. El código lo generé con Claude a partir de ese diseño, que es justamente de lo que habla la obra.
+Idea, diseño y decisiones: Armando. Código generado con Claude a partir de ese diseño, que es justamente de lo que habla la obra.

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Why Bother? · ¿Para qué tomarte el trabajo?</title>
+  <meta name="description" content="Obra de simulación computacional para la Unidad 8 del curso de Simulación.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="lienzo"></canvas>
+
+  <div id="capa">
+    <!-- Escena 0: portada -->
+    <section id="portada">
+      <h1>Why Bother?</h1>
+      <p class="sub">¿Para qué tomarte el trabajo?</p>
+    </section>
+
+    <!-- Etiquetas de los dos lados -->
+    <div id="etq-humano" class="etiqueta humano">lado humano</div>
+    <div id="etq-ia" class="etiqueta ia">lado IA</div>
+
+    <!-- Leyenda de cada escena (los textos están en js/guion.js) -->
+    <aside id="leyenda">
+      <h2 id="leyenda-titulo"></h2>
+      <p id="leyenda-texto"></p>
+    </aside>
+
+    <!-- Escena 7: la pregunta y la respuesta -->
+    <section id="final">
+      <p id="pregunta"></p>
+      <p id="respuesta"></p>
+    </section>
+
+    <!-- Escena 4: medidor de esfuerzo -->
+    <div id="esfuerzo">
+      <span>esfuerzo</span>
+      <div class="barra"><i id="esfuerzo-relleno"></i></div>
+    </div>
+
+    <!-- Navegación -->
+    <nav id="hud">
+      <p id="contador"></p>
+      <p class="ayuda" id="ayuda">usa las teclas del 0 al 7</p>
+    </nav>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

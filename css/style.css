@@ -149,133 +149,114 @@ body::after {
 }
 #portada.oculto { opacity: 0; filter: blur(10px); transform: scale(1.04); }
 
-/* Tarjeta de capítulo: número romano entre filetes, como en un libro
-   antiguo, y el título que aparece abriéndose desde el centro. */
-#tarjeta {
+/* Verso: cada letra se enciende un poco después que la anterior. */
+#verso {
+  position: absolute;
+  left: 50%;
+  bottom: calc(9vh + 2.6rem);
+  transform: translateX(-50%);
+  width: min(50rem, 88vw);
+  text-align: center;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+  line-height: 1.4;
+  color: var(--tinta);
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
+}
+#verso span {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(4px);
+  transition: opacity 1.1s ease, filter 1.1s ease, transform 1.1s ease;
+}
+#verso.visible span { opacity: 1; filter: none; transform: none; }
+#verso.saliendo span { transition-duration: 0.9s; }
+/* Un filete dorado que se abre debajo del verso */
+#verso::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 1px;
+  margin: 0.9rem auto 0;
+  background: linear-gradient(90deg, transparent, var(--oro), transparent);
+  opacity: 0;
+  transition: width 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s, opacity 0.8s ease;
+}
+#verso.visible::after { width: 7rem; opacity: 0.6; }
+
+/* Ornamentos de las esquinas */
+.ornamento {
+  position: absolute;
+  width: clamp(3rem, 6vw, 5rem);
+  height: clamp(3rem, 6vw, 5rem);
+  fill: none;
+  stroke: var(--oro);
+  stroke-width: 1;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+body.en-pelicula .ornamento { opacity: 0.32; }
+.sup-izq { top: calc(9vh + 1rem); left: 1.2rem; }
+.sup-der { top: calc(9vh + 1rem); right: 1.2rem; transform: scaleX(-1); }
+.inf-izq { bottom: calc(9vh + 1rem); left: 1.2rem; transform: scaleY(-1); }
+.inf-der { bottom: calc(9vh + 1rem); right: 1.2rem; transform: scale(-1, -1); }
+body.epilogo .sup-izq, body.epilogo .sup-der { top: 1.2rem; }
+body.epilogo .inf-izq, body.epilogo .inf-der { bottom: 1.2rem; }
+.ornamento { transition: opacity 3s ease, top 2.4s ease, bottom 2.4s ease; }
+
+/* Progreso: una línea dorada muy fina dentro de la barra de abajo */
+#progreso-carril {
+  position: absolute;
+  left: 25vw;
+  right: 25vw;
+  bottom: calc(4.5vh);
+  height: 1px;
+  background: rgba(242, 182, 109, 0.12);
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+body.cine #progreso-carril { opacity: 1; }
+#progreso {
+  display: block;
+  height: 100%;
+  background: var(--oro);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 1s linear;
+}
+
+/* Epílogo */
+#final {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.1rem;
-  text-align: center;
-  background: radial-gradient(ellipse 45% 32% at 50% 50%, rgba(8, 5, 3, 0.8), transparent 80%);
-  opacity: 0;
-  transition: opacity 1.6s ease;
-}
-#tarjeta.visible { opacity: 1; }
-#tarjeta-numero {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  font-family: var(--serif);
-  font-size: 1.15rem;
-  letter-spacing: 0.3em;
-  color: var(--oro);
-}
-#tarjeta-numero::before, #tarjeta-numero::after {
-  content: "";
-  width: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--oro));
-  transition: width 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s;
-}
-#tarjeta-numero::after { background: linear-gradient(270deg, transparent, var(--oro)); }
-#tarjeta.visible #tarjeta-numero::before, #tarjeta.visible #tarjeta-numero::after { width: 4.5rem; }
-#tarjeta-titulo {
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(2.1rem, 5.4vw, 4.2rem);
-  letter-spacing: 0.18em;
-  filter: blur(10px);
-  transition: letter-spacing 3.4s cubic-bezier(0.2, 0.7, 0.2, 1), filter 2s ease;
-  text-shadow: 0 0 40px rgba(242, 182, 109, 0.25);
-}
-#tarjeta.visible #tarjeta-titulo { letter-spacing: -0.005em; filter: none; }
-
-/* Frase */
-#frase {
-  position: absolute;
-  left: 50%;
-  bottom: calc(9vh + 2.4rem);
-  transform: translateX(-50%);
-  width: min(46rem, 88vw);
-  text-align: center;
-  font-weight: 300;
-  font-style: italic;
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
-  line-height: 1.4;
-  color: var(--tinta);
-  transition: opacity 1s ease;
-  text-shadow: 0 0 24px rgba(0, 0, 0, 0.9);
-}
-#frase.oculto { opacity: 0; }
-#frase .caret {
-  display: inline-block;
-  width: 0.5em;
-  margin-left: 0.08em;
-  border-bottom: 1px solid var(--tinta-suave);
-  animation: latir 1s steps(2) infinite;
-}
-
-/* Pista para continuar */
-#pista {
-  position: absolute;
-  left: 50%;
-  bottom: calc(9vh + 0.9rem);
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.25em;
-  color: var(--tinta-tenue);
-  opacity: 0;
-  transition: opacity 1.2s ease;
-}
-#pista.visible { opacity: 1; animation: latir 3s ease-in-out 1.5s infinite; }
-
-#continuar {
-  position: absolute;
-  left: 50%;
-  bottom: calc(9vh + 0.6rem);
-  transform: translateX(-50%);
-  padding: 0.5rem 1.2rem;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.25em;
-  color: var(--tinta);
-  background: rgba(12, 9, 7, 0.6);
-  border: 1px solid var(--tinta-tenue);
-  border-radius: 2rem;
-  opacity: 0;
-  pointer-events: none;
-  cursor: none;
-  transition: opacity 1.2s ease, border-color 0.3s ease;
-}
-#continuar.visible { opacity: 1; pointer-events: auto; }
-#continuar:hover { border-color: var(--oro); }
-
-/* Epílogo */
-#final {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  gap: 2.2rem;
   text-align: center;
   padding: 0 1.5rem;
 }
-#final > * { grid-area: 1 / 1; }
 #final::before {
   content: "";
-  grid-area: 1 / 1;
-  width: min(80vw, 60rem);
-  height: min(50vh, 26rem);
-  background: radial-gradient(ellipse at center, rgba(8, 5, 3, 0.7), transparent 70%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(84vw, 64rem);
+  height: min(62vh, 32rem);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(8, 5, 3, 0.72), transparent 70%);
   opacity: 0;
   transition: opacity 3s ease;
+  pointer-events: none;
 }
 body.epilogo #final::before { opacity: 1; }
-#pregunta, #respuesta, #final-titulo {
+#final-titulo { position: absolute; top: 50%; left: 50%; translate: -50% -50%; white-space: nowrap; }
+#reiniciar { position: absolute; bottom: 3rem; }
+#pregunta, #respuesta-1, #respuesta-2, #final-titulo {
   opacity: 0;
   transform: translateY(10px);
   filter: blur(8px);
@@ -283,17 +264,23 @@ body.epilogo #final::before { opacity: 1; }
   text-shadow: 0 0 40px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9);
 }
 #pregunta {
-  margin-bottom: 9rem;
   font-family: var(--mono);
   font-size: clamp(0.95rem, 1.8vw, 1.3rem);
   color: var(--tinta-suave);
 }
-#respuesta {
-  max-width: 18ch;
+#respuesta { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
+#respuesta-1 {
   font-weight: 300;
   font-style: italic;
-  font-size: clamp(2.3rem, 6vw, 5rem);
-  line-height: 1.08;
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  color: var(--tinta-suave);
+}
+#respuesta-2 {
+  max-width: 20ch;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(2rem, 4.8vw, 3.9rem);
+  line-height: 1.1;
 }
 #final-titulo {
   font-weight: 300;
@@ -301,10 +288,8 @@ body.epilogo #final::before { opacity: 1; }
   font-size: clamp(3rem, 9vw, 7.5rem);
   letter-spacing: -0.02em;
 }
-#pregunta.visible, #respuesta.visible, #final-titulo.visible { opacity: 1; transform: none; filter: none; }
+#pregunta.visible, #respuesta-1.visible, #respuesta-2.visible, #final-titulo.visible { opacity: 1; transform: none; filter: none; }
 #reiniciar {
-  align-self: end;
-  margin-bottom: 3rem;
   font-family: var(--mono);
   font-size: 0.64rem;
   letter-spacing: 0.25em;

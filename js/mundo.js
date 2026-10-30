@@ -17,7 +17,7 @@ export const RIGIDO = 'rigido';
 export const HIBRIDO = 'hibrido';
 
 const N = 320;          // cantidad de agentes
-const RASTRO = 18;      // largo de la estela de los humanos
+const RASTRO = 30;      // largo de las estelas
 const CASILLA = 3.4;    // tamaño de la cuadrícula del lado IA
 
 // Parámetros de cada forma de moverse
@@ -152,7 +152,7 @@ export class Mundo {
     this.puntos.renderOrder = 2;
     this.escena.add(this.puntos);
 
-    // Estelas de los humanos: segmentos con color RGBA (se desvanecen).
+    // Estelas: segmentos con color RGBA que se desvanecen hacia atrás.
     const segs = N * (RASTRO - 1) * 2;
     const gr = new THREE.BufferGeometry();
     this.rPos = new Float32Array(segs * 3);
@@ -220,6 +220,31 @@ export class Mundo {
     this.escena.add(this.polvo);
     this.polvoMeta = 0.35;
 
+    // Astrolabio: anillos dorados muy finos, con marcas como de un
+    // instrumento antiguo. Giran despacio detrás de la espiral final.
+    this.astrolabio = new THREE.Group();
+    this.matAstro = new THREE.LineBasicMaterial({ color: 0xe8bd7a, transparent: true, opacity: 0, depthWrite: false });
+    const anillo = (r, marcas, largo) => {
+      const pts = [];
+      for (let i = 0; i <= 256; i++) { const a = (i / 256) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, 0)); }
+      const g = new THREE.Group();
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.matAstro));
+      const m = [];
+      for (let i = 0; i < marcas; i++) {
+        const a = (i / marcas) * Math.PI * 2, l = i % 6 === 0 ? largo * 2 : largo;
+        m.push(Math.cos(a) * r, Math.sin(a) * r, 0, Math.cos(a) * (r - l), Math.sin(a) * (r - l), 0);
+      }
+      const gm = new THREE.BufferGeometry();
+      gm.setAttribute('position', new THREE.Float32BufferAttribute(m, 3));
+      g.add(new THREE.LineSegments(gm, this.matAstro));
+      return g;
+    };
+    this.anillosAstro = [anillo(30, 72, 1.2), anillo(46, 120, 0.9), anillo(62, 36, 2.2), anillo(64, 0, 0)];
+    this.anillosAstro.forEach((g) => this.astrolabio.add(g));
+    this.astrolabio.position.z = -3;
+    this.escena.add(this.astrolabio);
+    this.astrolabioMeta = 0;
+
     // La cuadrícula del lado que copia: fría y exacta. Con verla se
     // entiende qué lado es, sin escribirlo.
     const lineas = [];
@@ -279,7 +304,7 @@ export class Mundo {
     for (const a of this.agentes) a.huella = null;
   }
 
-  configurar(c, t = 0) {
+  configurar(c, t = 0, cortar = false) {
     this.visibles = c.visibles;
     this.humanosActivos = c.humanos;
     this.atajoMeta = c.atajo;
@@ -293,7 +318,8 @@ export class Mundo {
     this.caminoMeta = c.camino ?? this.caminoMeta;
     this.cuadriculaMeta = c.cuadricula ?? 0;
     this.flujo = c.flujo ?? 0;
-    if (c.plano) this.nuevoPlano(c.plano, t, true);
+    if (c.plano) this.nuevoPlano(c.plano, t, cortar);
+    this.astrolabioMeta = c.astrolabio ? 0.22 : 0;
 
     if (c.copias && !this.copiasActivas) this.relojCopia = 999; // copia de inmediato
     this.copiasActivas = c.copias;
@@ -572,6 +598,8 @@ export class Mundo {
     this.polvo.geometry.attributes.position.needsUpdate = true;
     this.matFrontera.opacity += (this.fronteraMeta - this.matFrontera.opacity) * 0.04 * k;
     this.matCuadricula.opacity += (this.cuadriculaMeta - this.matCuadricula.opacity) * 0.03 * k;
+    this.matAstro.opacity += (this.astrolabioMeta - this.matAstro.opacity) * 0.01 * k;
+    this.anillosAstro.forEach((g, i) => { g.rotation.z = t * 0.02 * (i % 2 ? -1 : 1) * (1 + i * 0.3); });
     this.tAhora = t;
     this.frontera.scale.y = this.my / 50;
 
@@ -721,23 +749,33 @@ export class Mundo {
     const g = this.puntos.geometry;
     for (const n of ['position', 'aColor', 'aAlpha', 'aSize', 'aShape']) g.attributes[n].needsUpdate = true;
 
-    // Estelas
+    // Estelas. Los humanos dejan una estela corta mientras deambulan.
+    // En el final, los que volvieron dejan trazos largos de luz al girar.
     let v = 0;
+    this.cuadroEstela = (this.cuadroEstela || 0) + 1;
     for (const a of ag) {
+      const hibridoGirando = a.estado === HIBRIDO && a.pieza && (this.orbita || this.jardin);
       if (a.estado === HUMANO && this.humanosActivos) {
-        a.rastro.push(a.x, a.y);
-        if (a.rastro.length > RASTRO * 2) a.rastro.splice(0, 2);
+        a.rastro.push(a.x, a.y, 0);
+        if (a.rastro.length > 18 * 3) a.rastro.splice(0, 3);
+      } else if (hibridoGirando) {
+        if (this.cuadroEstela % 2 === 0) {
+          const p = a.pieza.position;
+          a.rastro.push(p.x, p.y, p.z);
+          if (a.rastro.length > RASTRO * 3) a.rastro.splice(0, 3);
+        }
       } else if (a.rastro.length) {
         a.rastro.length = 0;
       }
-      const r = a.rastro, n = r.length / 2;
+      const r = a.rastro, n = r.length / 3;
+      const brillo = hibridoGirando ? 0.55 * (a.pieza.material.opacity || 0) : 0.45 * a.alpha;
       for (let s = 0; s < RASTRO - 1; s++) {
         const o = v * 3, oc = v * 4;
         if (s < n - 1) {
-          const al0 = (s / RASTRO) * 0.45 * a.alpha;
-          const al1 = ((s + 1) / RASTRO) * 0.45 * a.alpha;
-          this.rPos[o] = r[s * 2]; this.rPos[o + 1] = r[s * 2 + 1]; this.rPos[o + 2] = 0;
-          this.rPos[o + 3] = r[s * 2 + 2]; this.rPos[o + 4] = r[s * 2 + 3]; this.rPos[o + 5] = 0;
+          const al0 = (s / n) * brillo;
+          const al1 = ((s + 1) / n) * brillo;
+          this.rPos[o] = r[s * 3]; this.rPos[o + 1] = r[s * 3 + 1]; this.rPos[o + 2] = r[s * 3 + 2];
+          this.rPos[o + 3] = r[s * 3 + 3]; this.rPos[o + 4] = r[s * 3 + 4]; this.rPos[o + 5] = r[s * 3 + 5];
           this.rCol.set([a.color.r, a.color.g, a.color.b, al0, a.color.r, a.color.g, a.color.b, al1], oc);
         } else {
           this.rCol[oc + 3] = 0; this.rCol[oc + 7] = 0;

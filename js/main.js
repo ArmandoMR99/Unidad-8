@@ -91,14 +91,14 @@ lienzo.addEventListener('pointerleave', () => { mundo.puntero.dentro = false; mu
 
 // ---------- Teclado: la presentación ----------
 // Para quien presenta: espacio y flechas avanzan o retroceden,
-// los números saltan a un capítulo (0 a 7).
+// los números saltan a un momento de la película (1 a 7).
 window.addEventListener('keydown', (e) => {
   sonido.despertar();
-  if (/^[0-7]$/.test(e.key)) { escenas.ir(Number(e.key)); return; }
+  if (/^[1-7]$/.test(e.key)) { escenas.ir(Number(e.key), Number(e.key) < escenas.actual); return; }
   switch (e.key) {
     case 'ArrowRight': case 'PageDown': case ' ':
       e.preventDefault();
-      if (escenas.escribiendo) escenas.completar(); else escenas.siguiente();
+      escenas.adelantar();
       break;
     case 'ArrowLeft': case 'PageUp':
       e.preventDefault(); escenas.anterior(); break;

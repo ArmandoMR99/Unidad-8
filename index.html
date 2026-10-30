@@ -30,18 +30,21 @@
       <p id="empezar"></p>
     </section>
 
-    <section id="tarjeta" aria-live="polite">
-      <p id="tarjeta-numero"></p>
-      <p id="tarjeta-titulo"></p>
-    </section>
+    <p id="verso" aria-live="polite"></p>
 
-    <p id="frase" aria-live="polite"></p>
-    <p id="pista"></p>
-    <button id="continuar" type="button"></button>
+    <!-- Ornamentos: filigranas finas en las esquinas del cuadro -->
+    <svg class="ornamento sup-izq" viewBox="0 0 120 120" aria-hidden="true"><path d="M4 116 V40 C4 18 18 4 40 4 H116 M14 116 V46 C14 26 26 14 46 14 H116 M40 4 C40 22 30 32 14 32 M30 30 c6 -2 10 2 8 8 c-2 5 -9 5 -10 0" /></svg>
+    <svg class="ornamento sup-der" viewBox="0 0 120 120" aria-hidden="true"><path d="M4 116 V40 C4 18 18 4 40 4 H116 M14 116 V46 C14 26 26 14 46 14 H116 M40 4 C40 22 30 32 14 32 M30 30 c6 -2 10 2 8 8 c-2 5 -9 5 -10 0" /></svg>
+    <svg class="ornamento inf-izq" viewBox="0 0 120 120" aria-hidden="true"><path d="M4 116 V40 C4 18 18 4 40 4 H116 M14 116 V46 C14 26 26 14 46 14 H116 M40 4 C40 22 30 32 14 32 M30 30 c6 -2 10 2 8 8 c-2 5 -9 5 -10 0" /></svg>
+    <svg class="ornamento inf-der" viewBox="0 0 120 120" aria-hidden="true"><path d="M4 116 V40 C4 18 18 4 40 4 H116 M14 116 V46 C14 26 26 14 46 14 H116 M40 4 C40 22 30 32 14 32 M30 30 c6 -2 10 2 8 8 c-2 5 -9 5 -10 0" /></svg>
+    <div id="progreso-carril" aria-hidden="true"><i id="progreso"></i></div>
 
     <section id="final">
       <p id="pregunta"></p>
-      <p id="respuesta"></p>
+      <div id="respuesta">
+        <p id="respuesta-1"></p>
+        <p id="respuesta-2"></p>
+      </div>
       <p id="final-titulo"></p>
       <p id="reiniciar"></p>
     </section>
@@ -49,9 +52,9 @@
     <button id="sonido" type="button" aria-label="activar o silenciar el sonido">sonido</button>
 
     <aside id="ayuda" aria-hidden="true">
-      <p><b>clic / espacio / →</b> continuar</p>
-      <p><b>←</b> capítulo anterior (reinicia)</p>
-      <p><b>0–7</b> ir a un capítulo</p>
+      <p><b>clic / espacio / →</b> adelantar</p>
+      <p><b>←</b> volver a empezar</p>
+      <p><b>1–7</b> saltar a un momento</p>
       <p><b>S</b> sonido · <b>H</b> esta ayuda</p>
     </aside>
   </main>
